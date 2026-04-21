@@ -46,7 +46,7 @@ export default function DedicationPage() {
         <div style={{
           position: 'absolute',
           top: '8%',
-          left: '13%',       
+          left: '16%',       
           width: '28%',      
           bottom: '8%',
           display: 'flex',
