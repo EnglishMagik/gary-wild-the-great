@@ -6,12 +6,11 @@ export default function DedicationPage() {
   const navigate = useNavigate()
   const dedication = useBookStore((s) => s.dedication)
 
-  // Edit your text right here inside the backticks
   const displayText = dedication && dedication.trim()
     ? dedication
-    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
+    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  const PAD = '5vw' // Slightly increased padding to pull content away from the leather edge
+  const PAD = '5vw'
 
   return (
     <div style={{
@@ -24,48 +23,54 @@ export default function DedicationPage() {
       alignItems: 'center',
       justifyContent: 'center',
       boxSizing: 'border-box',
+      padding: PAD,
     }}>
 
       <div style={{
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         width: '100%',
-        height: '100vh',
-        padding: PAD,
-        gap: '2vw',
-        boxSizing: 'border-box',
+        maxWidth: '1200px',
+        gap: '3vw',
       }}>
 
-        {/* LEFT HALF — Centered Image Container */}
+        {/* LEFT — IMAGE PERFECTLY INSIDE FRAME */}
         <div style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center', // Centers horizontally
-          justifyContent: 'center', // Centers vertically
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
-          {/* GOLD FRAME — Now smaller (75% width) and centered */}
+
           <div style={{
-            width: '75%', 
-            padding: '6px',
-            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
-            borderRadius: '4px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+            width: '70%',
+            aspectRatio: '1 / 1',
+            padding: '8px',
+            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
+            borderRadius: '6px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
             boxSizing: 'border-box',
           }}>
             <div style={{
-              padding: '4px',
+              width: '100%',
+              height: '100%',
+              padding: '6px',
               background: '#f5ead6',
-              borderRadius: '2px',
+              borderRadius: '4px',
+              boxSizing: 'border-box',
             }}>
               <img
                 src="/Magicat.jpg"
                 alt="Making Life Magic"
                 style={{
                   width: '100%',
-                  height: 'auto',
+                  height: '100%',
+                  objectFit: 'cover',
                   display: 'block',
+                  borderRadius: '2px',
                 }}
               />
             </div>
@@ -75,7 +80,7 @@ export default function DedicationPage() {
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.6rem, 1vw, 0.9rem)', // Smaller sub-text
+            fontSize: 'clamp(0.7rem, 1vw, 0.95rem)',
             color: '#2a1a08',
             textAlign: 'center',
             marginTop: '1rem',
@@ -84,7 +89,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT HALF — Smaller, centered text column */}
+        {/* RIGHT — TEXT (UNCHANGED STRUCTURE) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -92,7 +97,6 @@ export default function DedicationPage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.8rem',
-          paddingLeft: '2vw' // Gives the text a little "breathing room" from the center
         }}>
 
           <div style={{
@@ -110,12 +114,11 @@ export default function DedicationPage() {
             background: 'rgba(90,58,24,0.2)',
           }} />
 
-          {/* TEXT — Adjusted to be smaller and more elegant */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.75rem, 1.2vw, 1rem)', // Reduced font size
+            fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
             color: '#3a2010',
             textAlign: 'left',
             lineHeight: 1.8,
@@ -137,7 +140,7 @@ export default function DedicationPage() {
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
-              padding: '0.3rem 1.5rem', // Smaller button
+              padding: '0.3rem 1.5rem',
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
               letterSpacing: '0.2em',
