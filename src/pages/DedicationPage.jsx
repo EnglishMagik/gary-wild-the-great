@@ -20,7 +20,7 @@ backgroundPosition: 'center',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2vh 2vw',
+      padding: '0 2vw',
       boxSizing: 'border-box',
     }}>
 
