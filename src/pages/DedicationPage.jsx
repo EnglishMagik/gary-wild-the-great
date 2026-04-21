@@ -30,26 +30,26 @@ export default function DedicationPage() {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         width: '100%',
         maxWidth: '1200px',
+        margin: '0 auto',
         gap: '3vw',
       }}>
 
-        {/* LEFT — IMAGE PERFECTLY INSIDE FRAME */}
-      <div style={{
-   width: '40%',
-   flex: '0 0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',   // 🔥 THIS moves it left
-        justifyContent: 'center',
-		paddingLeft: '2vw',
+        {/* LEFT — IMAGE */}
+        <div style={{
+          width: '40%',
+          flex: '0 0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',   // FIXED (was flex-start)
+          justifyContent: 'center',
         }}>
 
-        <div style={{
-        width: '100%',
-        maxWidth: '320px',
+          <div style={{
+            width: '100%',
+            maxWidth: '320px',
             aspectRatio: '1 / 1',
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -92,7 +92,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT (UNCHANGED STRUCTURE) */}
+        {/* RIGHT — TEXT */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -154,6 +154,7 @@ export default function DedicationPage() {
           >
             ENTER
           </button>
+
         </div>
 
       </div>
