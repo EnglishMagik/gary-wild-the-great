@@ -25,11 +25,13 @@ export default function Key({ onKeyUsed }) {
   }, [landed])
 
   const handleClick = () => {
-    if (clickedRef.current) return
-    clickedRef.current = true
+  if (clickedRef.current) return
+  clickedRef.current = true
 
-    const el = keyRef.current
-    gsap.killTweensOf(el)
+  const el = keyRef.current
+gsap.killTweensOf(el)
+gsap.set(el, { filter: 'none' })
+el.style.filter = 'none'
 
     const tl = gsap.timeline({ delay: 0 })
 
