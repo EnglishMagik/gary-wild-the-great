@@ -14,7 +14,9 @@ export default function DedicationPage() {
     <div style={{
       width: '100%',
       minHeight: '100vh',
-    background: '#ffffff',
+      backgroundImage: "url('/leathers.png')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -22,7 +24,7 @@ export default function DedicationPage() {
       boxSizing: 'border-box',
     }}>
 
-      {/* OPEN BOOK — same proportions as reader */}
+      {/* OPEN BOOK */}
       <div style={{
         position: 'relative',
         width: 'min(96vw, calc(96vh * 1025 / 571))',
@@ -40,12 +42,12 @@ export default function DedicationPage() {
           }}
         />
 
-        {/* LEFT PAGE — photo in gold frame */}
+        {/* LEFT PAGE — photo, slightly smaller and shifted right */}
         <div style={{
           position: 'absolute',
           top: '8%',
-          left: '11%',
-          width: '33%',
+          left: '13%',       
+          width: '28%',      
           bottom: '8%',
           display: 'flex',
           flexDirection: 'column',
@@ -79,7 +81,7 @@ export default function DedicationPage() {
             </div>
           </div>
 
-          {/* CAPTION UNDER IMAGE */}
+          {/* CAPTION */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
@@ -105,7 +107,6 @@ export default function DedicationPage() {
           justifyContent: 'center',
           gap: '1rem',
         }}>
-          {/* ORNAMENT */}
           <div style={{
             fontFamily: 'Cinzel, serif',
             fontSize: 'clamp(0.5rem, 0.8vw, 0.7rem)',
@@ -116,7 +117,6 @@ export default function DedicationPage() {
             ✦ ✦ ✦
           </div>
 
-          {/* DIVIDER */}
           <div style={{
             width: '60%',
             height: '1px',
@@ -126,10 +126,10 @@ export default function DedicationPage() {
           {/* DEDICATION TEXT */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
-           fontStyle: 'italic',
-fontWeight: 'bold',
-fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
-color: '#3a2010',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+            color: '#3a2010',
             textAlign: 'center',
             lineHeight: 2,
             whiteSpace: 'pre-line',
@@ -137,7 +137,6 @@ color: '#3a2010',
             {displayText}
           </div>
 
-          {/* DIVIDER */}
           <div style={{
             width: '60%',
             height: '1px',
@@ -173,7 +172,6 @@ color: '#3a2010',
             ENTER
           </button>
 
-          {/* SUBTLE BACK LINK */}
           <div
             onClick={() => navigate('/')}
             style={{
