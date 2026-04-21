@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
 
-// ─── PAGINATION ENGINE ───────────────────────────────────────────────
-// Splits all chapter text into visual page slots based on chars-per-page
 const CHARS_PER_PAGE = 600
 
 function buildPageSlots(chapters) {
   const slots = []
   chapters.forEach((ch, chIndex) => {
-    // Combine all pages of this chapter into one long text
     const fullText = ch.pages.map(p => p.text).join('\n\n')
     const paragraphs = fullText.split('\n').filter(p => p.trim())
     
@@ -31,8 +28,8 @@ function buildPageSlots(chapters) {
       currentLen = 0
     }
 
-    const charsForFirstSlot = CHARS_PER_PAGE - 200 // header takes space
-    
+    const charsForFirstSlot = CHARS_PER_PAGE - 350
+
     paragraphs.forEach(para => {
       const limit = isFirstSlot ? charsForFirstSlot : CHARS_PER_PAGE
       if (currentLen + para.length > limit && currentSlotParas.length > 0) {
@@ -45,7 +42,6 @@ function buildPageSlots(chapters) {
   })
   return slots
 }
-// ─────────────────────────────────────────────────────────────────────
 
 export default function ReaderPage() {
   const navigate = useNavigate()
@@ -58,7 +54,6 @@ export default function ReaderPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Build paginated slots from chapters
   const slots = buildPageSlots(chapters)
 
   if (slots.length === 0) {
@@ -79,7 +74,6 @@ export default function ReaderPage() {
     )
   }
 
-  // Clamp currentPageIndex to valid range
   const safeIndex = Math.min(currentPageIndex, slots.length - 1)
   const pagesPerSpread = isMobile ? 1 : 2
   const leftSlot = slots[safeIndex]
@@ -131,7 +125,6 @@ export default function ReaderPage() {
         bottom: '4%',
         zIndex: 3,
       }}>
-        {/* PAGE NUMBER */}
         <div style={{
           position: 'absolute',
           bottom: 0,
@@ -149,7 +142,6 @@ export default function ReaderPage() {
           {pageNum}
         </div>
 
-        {/* CONTENT AREA */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
@@ -158,11 +150,10 @@ export default function ReaderPage() {
           flexDirection: 'column',
           overflow: 'hidden',
         }}>
-          {/* CHAPTER HEADER — first slot of chapter only */}
           {slot.isFirstOfChapter && (
             <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0 }}>
               {isLeft && (
-                <div style={{ textAlign: 'left', marginBottom: '0.3rem' }}>
+                <div style={{ textAlign: 'left', marginBottom: '0.3rem', marginTop: '1rem' }}>
                   <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
                 </div>
               )}
@@ -203,7 +194,6 @@ export default function ReaderPage() {
             </div>
           )}
 
-          {/* CONTINUATION PAGE HEADER */}
           {!slot.isFirstOfChapter && (
             <div style={{
               display: 'flex', alignItems: 'center',
@@ -221,7 +211,6 @@ export default function ReaderPage() {
             </div>
           )}
 
-          {/* PAGE TEXT */}
           <div style={{
             fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold',
             fontSize: 'clamp(0.72rem, 1.15vw, 0.98rem)', color: '#2a1a08',
@@ -237,7 +226,6 @@ export default function ReaderPage() {
     )
   }
 
-  // ── DESKTOP ──
   const renderDesktop = () => (
     <div style={{
       width: '100%',
@@ -249,11 +237,6 @@ export default function ReaderPage() {
       padding: '2vh 2vw',
       boxSizing: 'border-box',
     }}>
-      {/* 
-        KEY FIX FOR SQUASHING:
-        Use aspect-ratio to maintain 1025:571 book proportions.
-        Max out width but never exceed height.
-      */}
       <div style={{
         position: 'relative',
         width: 'min(96vw, calc(96vh * 1025 / 571))',
@@ -276,7 +259,6 @@ export default function ReaderPage() {
     </div>
   )
 
-  // ── MOBILE ──
   const renderMobile = () => (
     <div style={{
       width: '100%', height: '100vh',
@@ -306,7 +288,7 @@ export default function ReaderPage() {
           }}>
             {leftSlot?.isFirstOfChapter ? (
               <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0, marginBottom: '0.5rem' }}>
-                <div style={{ textAlign: 'left', marginBottom: '0.3rem' }}>
+                <div style={{ textAlign: 'left', marginBottom: '0.3rem', marginTop: '1rem' }}>
                   <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.1rem' }}>
