@@ -113,10 +113,10 @@ export const useBookStore = create(
             if (ch.id !== chapterId) return ch;
             const pages = [...ch.pages];
             const lastPage = pages[pages.length - 1];
-            if (lastPage && lastPage.text.length < 2000) {
-              lastPage.text = lastPage.text + "\n\n" + text;
-              return { ...ch, pages };
-            } else {
+if (lastPage && lastPage.text.length < 800) {
+  const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
+  return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
+} else {
               return {
                 ...ch,
                 pages: [...pages, { id: 'pg-' + Date.now(), text, media: [] }]

@@ -4,8 +4,8 @@ import { useBookStore } from '../store/bookStore'
 
 export default function ReaderPage() {
   const navigate = useNavigate()
-  const { currentPageIndex, setCurrentPage, getFlatPages } = useBookStore()
-  const allPages = getFlatPages()
+const { currentPageIndex, setCurrentPage, getFlatPages, chapters } = useBookStore()
+const allPages = getFlatPages()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   useEffect(() => {
