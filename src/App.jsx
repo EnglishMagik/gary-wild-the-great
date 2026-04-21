@@ -4,6 +4,7 @@ import './styles/global.css'
 
 import HomePage      from './pages/HomePage'
 import ContentsPage  from './pages/ContentsPage'
+import DedicationPage from './pages/DedicationPage'
 import ChaptersPage  from './pages/ChaptersPage'
 import GalleryPage   from './pages/GalleryPage'
 import AudioPage     from './pages/AudioPage'
