@@ -74,7 +74,6 @@ export default function ChaptersPage() {
             cursor: 'pointer',
             position: 'relative',
             zIndex: 1,
-            mixBlendMode: 'multiply',
             animation: 'keyGlow 3s ease-in-out infinite',
             transition: 'transform 0.2s',
           }}
