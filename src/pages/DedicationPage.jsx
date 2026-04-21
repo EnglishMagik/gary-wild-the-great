@@ -6,12 +6,12 @@ export default function DedicationPage() {
   const navigate = useNavigate()
   const dedication = useBookStore((s) => s.dedication)
 
+  // Edit your text right here inside the backticks
   const displayText = dedication && dedication.trim()
     ? dedication
     : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
 
-  // This is our universal spacing unit — every gap in the layout uses this
-  const PAD = '4vw'
+  const PAD = '5vw' // Slightly increased padding to pull content away from the leather edge
 
   return (
     <div style={{
@@ -26,46 +26,38 @@ export default function DedicationPage() {
       boxSizing: 'border-box',
     }}>
 
-      {/* 
-        INNER CONTENT AREA
-        We use padding equal to PAD on all sides so the content
-        never touches the leather frame edges.
-        The two halves sit side by side with a gap also equal to PAD.
-      */}
       <div style={{
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
         height: '100vh',
-        padding: `${PAD} ${PAD} ${PAD} ${PAD}`,
-        gap: PAD,
+        padding: PAD,
+        gap: '2vw',
         boxSizing: 'border-box',
       }}>
 
-        {/* LEFT HALF — photo in gold frame, equal space on all 4 sides */}
+        {/* LEFT HALF — Centered Image Container */}
         <div style={{
-          flex: '0 0 auto',
-          width: `calc(50% - (${PAD} * 1.5))`,
-          height: `calc(100vh - (${PAD} * 2))`,
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: 'center', // Centers horizontally
+          justifyContent: 'center', // Centers vertically
         }}>
-          {/* GOLD FRAME — fills the left half with equal padding all around */}
+          {/* GOLD FRAME — Now smaller (75% width) and centered */}
           <div style={{
-            width: '100%',
-            padding: '7px',
+            width: '75%', 
+            padding: '6px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
-            borderRadius: '6px',
-            boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
+            borderRadius: '4px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
             boxSizing: 'border-box',
           }}>
             <div style={{
-              padding: '5px',
+              padding: '4px',
               background: '#f5ead6',
-              borderRadius: '3px',
+              borderRadius: '2px',
             }}>
               <img
                 src="/Magicat.jpg"
@@ -74,7 +66,6 @@ export default function DedicationPage() {
                   width: '100%',
                   height: 'auto',
                   display: 'block',
-                  borderRadius: '2px',
                 }}
               />
             </div>
@@ -84,29 +75,29 @@ export default function DedicationPage() {
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+            fontSize: 'clamp(0.6rem, 1vw, 0.9rem)', // Smaller sub-text
             color: '#2a1a08',
             textAlign: 'center',
-            marginTop: '0.5rem',
+            marginTop: '1rem',
           }}>
             Making Life Magic
           </div>
         </div>
 
-        {/* RIGHT HALF — dedication text, left-aligned */}
+        {/* RIGHT HALF — Smaller, centered text column */}
         <div style={{
           flex: 1,
-          height: `calc(100vh - (${PAD} * 2))`,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',   // left-aligns all children
+          alignItems: 'flex-start',
           justifyContent: 'center',
-          gap: '1rem',
+          gap: '0.8rem',
+          paddingLeft: '2vw' // Gives the text a little "breathing room" from the center
         }}>
 
           <div style={{
             fontFamily: 'Cinzel, serif',
-            fontSize: 'clamp(0.5rem, 0.8vw, 0.7rem)',
+            fontSize: '0.6rem',
             color: '#8b6914',
             letterSpacing: '0.3em',
           }}>
@@ -114,32 +105,31 @@ export default function DedicationPage() {
           </div>
 
           <div style={{
-            width: '80%',
+            width: '70%',
             height: '1px',
-            background: 'rgba(90,58,24,0.35)',
+            background: 'rgba(90,58,24,0.2)',
           }} />
 
-          {/* TEXT — left aligned, not centred */}
+          {/* TEXT — Adjusted to be smaller and more elegant */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.85rem, 1.5vw, 1.15rem)',
+            fontSize: 'clamp(0.75rem, 1.2vw, 1rem)', // Reduced font size
             color: '#3a2010',
             textAlign: 'left',
-            lineHeight: 2,
+            lineHeight: 1.8,
             whiteSpace: 'pre-line',
           }}>
             {displayText}
           </div>
 
           <div style={{
-            width: '80%',
+            width: '70%',
             height: '1px',
-            background: 'rgba(90,58,24,0.35)',
+            background: 'rgba(90,58,24,0.2)',
           }} />
 
-          {/* ENTER BUTTON — left aligned to match text */}
           <button
             onClick={() => navigate('/contents')}
             style={{
@@ -147,42 +137,17 @@ export default function DedicationPage() {
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
-              padding: '0.4rem 2rem',
+              padding: '0.3rem 1.5rem', // Smaller button
               fontFamily: 'Cinzel, serif',
-              fontSize: 'clamp(0.55rem, 0.9vw, 0.75rem)',
-              letterSpacing: '0.25em',
+              fontSize: '0.6rem',
+              letterSpacing: '0.2em',
               color: '#2a2a2a',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.06)'
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)'
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             }}
           >
             ENTER
           </button>
-
-          <div
-            onClick={() => navigate('/')}
-            style={{
-              fontFamily: 'Cinzel, serif',
-              fontSize: 'clamp(0.45rem, 0.7vw, 0.6rem)',
-              letterSpacing: '0.15em',
-              color: 'rgba(90,58,24,0.35)',
-              cursor: 'pointer',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.8)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.35)'}
-          >
-            ← COVER
-          </div>
         </div>
 
       </div>
