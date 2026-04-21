@@ -27,7 +27,7 @@ export default function DedicationPage() {
       {/* OPEN BOOK */}
       <div style={{
         position: 'relative',
-        marginTop: '15vh', // <--- This is the "Wee Nudge" (Changed from 12vh)
+        marginTop: '13.5vh', // <--- This is the "Wee Nudge" (Changed from 12vh)
         width: 'min(75vw, calc(65vh * 1025 / 571))',
         aspectRatio: '1025 / 571',
       }}>
