@@ -49,3 +49,58 @@ a {
   margin: 0;
   padding: 0;
 }
+/* =====================
+   MOBILE LANDSCAPE NUDGE
+===================== */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .landscape-only {
+    display: none !important;
+  }
+  
+  .rotate-nudge {
+    display: flex !important;
+  }
+}
+
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .rotate-nudge {
+    display: none !important;
+  }
+  
+  .landscape-only {
+    display: flex !important;
+  }
+}
+
+.rotate-nudge {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #1a1208;
+  z-index: 99999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.rotate-nudge-icon {
+  font-size: 4rem;
+  animation: rotateHint 2s ease-in-out infinite;
+}
+
+.rotate-nudge-text {
+  font-family: 'Cinzel', serif;
+  color: #c9a84c;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-align: center;
+  padding: 0 2rem;
+}
+
+@keyframes rotateHint {
+  0%   { transform: rotate(0deg); }
+  40%  { transform: rotate(90deg); }
+  60%  { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}
