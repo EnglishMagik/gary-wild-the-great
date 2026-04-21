@@ -1,181 +1,196 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useBookStore } from '../store/bookStore';
 
-export const useBookStore = create(
-  persist(
-    (set, get) => ({
-      title: 'Gary Wild: The Great',
-      dedication: '',
-      coverImage: null,
-      chapters: [
-        {
-          id: 'ch-test-1',
-          title: 'In the Beginning, There Was Gary',
-          pages: [
-            {
-              id: 'pg-test-1',
-              text: 'It is a curious thing to be born great, rather than to achieve greatness or have it thrust upon you. Gary Wild did not ask for the circumstances of his arrival into the world.\n\nHe simply arrived — loudly, unapologetically, and, according to witnesses, wearing an expression of mild impatience. His mother always said he came out looking like he had somewhere better to be.\n\nHis father, a man of few words and fewer opinions, merely nodded and offered the baby a handshake. Gary, to everyone\'s astonishment, appeared to consider it. This was the perfect introduction to a man who would spend his life slightly ahead of wherever everyone else assumed he was going.',
-              media: []
-            },
-            {
-              id: 'pg-test-2',
-              text: 'Test page 2.\n\nThis is the second page of the first chapter. More of the story would go here, filling the page with rich narrative and carefully chosen words that paint a vivid picture.\n\nThe story continues across multiple pages, each one revealing a little more about the remarkable life of Gary Wild. Every sentence matters. Every word is chosen with care.',
-              media: []
-            },
-            {
-              id: 'pg-test-3',
-              text: 'Test page 3.\n\nThis is the third page of chapter one. By now the reader is fully immersed in the world of Gary Wild and cannot put the book down.\n\nEvery page turn reveals something new, something unexpected, something that makes you want to keep reading into the small hours of the night. The writing carries you forward effortlessly.',
-              media: []
-            },
-            {
-              id: 'pg-test-4',
-              text: 'Test page 4.\n\nThis is the fourth and final test page of chapter one. The chapter draws to a close with the quiet confidence of a man who knows exactly where he is going.\n\nAnd where he is going, as it turns out, is somewhere rather extraordinary. The next chapter will reveal all. Turn the page and find out.',
-              media: []
-            },
-          ]
-        },
-        {
-          id: 'ch-test-2',
-          title: 'The Incident at the Café',
-          pages: [
-            {
-              id: 'pg-test-5',
-              text: 'No story of Gary Wild would be complete without the Café Incident of 2007, which depending on who you ask was either an act of extraordinary courage, a minor misunderstanding, or an elaborate attempt to get a free croissant.\n\nThe truth, as it so often does, contains elements of all three. Gary had entered the establishment on a Wednesday morning, which he always maintained was the universe\'s most underappreciated day.\n\nHe ordered a flat white, sat down by the window, and proceeded to change the life of everyone present — mostly by accident, and entirely without realising he had done so until three weeks later.',
-              media: []
-            },
-          ]
-        },
-      ],
-      currentPageIndex: 0,
-      toast: null,
-      mediaLibrary: [],
+export default function StudioPage() {
+  const navigate = useNavigate();
+  const [text, setText] = useState('');
+  const [status, setStatus] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [selectedId, setSelectedId] = useState('');
 
-      getFlatPages: () => {
-        const chapters = get().chapters || [];
-        const flat = [];
-        chapters.forEach((ch) => {
-          if (ch.pages && Array.isArray(ch.pages)) {
-            ch.pages.forEach((pg) => {
-              flat.push({ ...pg, chapterId: ch.id, chapterTitle: ch.title });
-            });
+  const chapters = useBookStore((s) => s.chapters);
+  const processVoiceInput = useBookStore((s) => s.processVoiceInput);
+  const deleteChapter = useBookStore((s) => s.deleteChapter);
+
+  const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef('');
+  const uploadRef = useRef(null);
+  const textRef = useRef('');
+
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.onresult = (event) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcriptSnippet = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscriptRef.current += transcriptSnippet + ' ';
+          } else {
+            interimTranscript += transcriptSnippet;
           }
-        });
-        return flat;
-      },
-
-      addChapter: (title) => {
-        const id = 'ch-' + Date.now();
-        set((s) => ({ chapters: [...s.chapters, { id, title, pages: [] }] }));
-        return id;
-      },
-
-      deleteChapter: (id) => {
-        set((s) => ({
-          chapters: s.chapters.filter(ch => ch.id !== id)
-        }));
-        get().showToast("Entire chapter deleted.");
-      },
-
-      renameChapter: (id, newTitle) => {
-        set((s) => ({
-          chapters: s.chapters.map((ch) =>
-            ch.id === id ? { ...ch, title: newTitle } : ch
-          ),
-        }));
-      },
-
-      updateChapterTitle: (id, newTitle) => {
-        set((s) => ({
-          chapters: s.chapters.map((ch) =>
-            ch.id === id ? { ...ch, title: newTitle } : ch
-          ),
-        }));
-      },
-
-      deletePage: (chapterId, pageId) => {
-        set((s) => ({
-          chapters: s.chapters.map((ch) => {
-            if (ch.id !== chapterId) return ch;
-            return {
-              ...ch,
-              pages: ch.pages.filter((p) => p.id !== pageId),
-            };
-          }),
-        }));
-        const currentIndex = get().currentPageIndex;
-        set({ currentPageIndex: Math.max(0, currentIndex - 1) });
-        get().showToast("Page deleted.");
-      },
-
-      addPage: (chapterId, text) => {
-        set((s) => ({
-          chapters: s.chapters.map((ch) => {
-            if (ch.id !== chapterId) return ch;
-            const pages = [...ch.pages];
-            const lastPage = pages[pages.length - 1];
-            if (lastPage && lastPage.text.length < 2000) {
-              const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
-              return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
-            } else {
-              return {
-                ...ch,
-                pages: [...pages, { id: 'pg-' + Date.now(), text, media: [] }]
-              };
-            }
-          }),
-        }));
-      },
-
-      updatePage: (chapterId, pageId, newText) => {
-        set((s) => ({
-          chapters: s.chapters.map((ch) => {
-            if (ch.id !== chapterId) return ch;
-            return {
-              ...ch,
-              pages: ch.pages.map((p) =>
-                p.id === pageId ? { ...p, text: newText } : p
-              ),
-            };
-          }),
-        }));
-        get().showToast("Changes saved.");
-      },
-
-      processVoiceInput: (rawText, chapterId = null, newChapterTitle = null) => {
-        const cleaned = rawText.trim();
-        if (!cleaned) return;
-        let targetId = chapterId;
-        if (newChapterTitle) {
-          targetId = get().addChapter(newChapterTitle);
-        } else if (!targetId) {
-          const chs = get().chapters;
-          targetId = chs.length === 0 ? get().addChapter('Chapter One') : chs[chs.length - 1].id;
         }
-        get().addPage(targetId, cleaned);
-      },
-
-      setDedication: (text) => set({ dedication: text }),
-      setCoverImage: (img) => set({ coverImage: img }),
-      setCurrentPage: (index) => set({ currentPageIndex: index }),
-
-      addToMediaLibrary: (item) => {
-        set((s) => ({ mediaLibrary: [...s.mediaLibrary, item] }));
-      },
-
-      removeFromMediaLibrary: (id) => {
-        set((s) => ({
-          mediaLibrary: s.mediaLibrary.filter((m) => m.id !== id)
-        }));
-      },
-
-      showToast: (msg) => {
-        set({ toast: msg });
-        setTimeout(() => set({ toast: null }), 3000);
-      },
-    }),
-    {
-      name: 'gary-wild-book',
-      version: 2,
+        setText(finalTranscriptRef.current + interimTranscript);
+      };
+      recognitionRef.current.onend = () => setIsRecording(false);
     }
-  )
-)
+  }, []);
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      setStatus("✅ Recording stopped.");
+    } else {
+      finalTranscriptRef.current = text;
+      recognitionRef.current?.start();
+      setIsRecording(true);
+      setStatus("🎤 Listening...");
+    }
+  };
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setStatus("⏳ Transcribing your audio...");
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('model', 'whisper-1');
+    try {
+      const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Transcription failed');
+      const data = await res.json();
+      const transcribed = data.text || '';
+      const updated = textRef.current ? textRef.current + '\n\n' + transcribed : transcribed;
+      setText(updated);
+      finalTranscriptRef.current = updated;
+      setStatus("✅ Transcription complete! Edit the text then save.");
+    } catch (err) {
+      setStatus("❌ Upload failed. Check your API key in .env");
+    }
+    e.target.value = '';
+  };
+
+  const handleSave = () => {
+    const current = textRef.current;
+    if (!current.trim()) return setStatus("⚠️ Please enter text first.");
+    processVoiceInput(current, selectedId || null, newTitle || null);
+    setText('');
+    finalTranscriptRef.current = '';
+    textRef.current = '';
+    setNewTitle('');
+    setSelectedId('');
+    setStatus("✅ Saved! Check your Table of Contents.");
+  };
+
+  const handleDelete = () => {
+    if (!selectedId) return setStatus("⚠️ Select a chapter to delete.");
+    if (window.confirm("Permanently delete this chapter and all its text?")) {
+      deleteChapter(selectedId);
+      setSelectedId('');
+      setStatus("🗑️ Deleted.");
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+
+      <nav style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '10px',
+        background: '#2c2c2c',
+        padding: '8px',
+        flexShrink: 0,
+      }}>
+        {[
+          { label: 'COVER',    path: '/'        },
+          { label: 'CONTENTS', path: '/contents' },
+          { label: 'READ',     path: '/reader'   },
+          { label: '✎ WRITE',  path: '/studio'   },
+          { label: '⚙ ADMIN',  path: '/admin'    },
+        ].map(({ label, path }) => (
+          <button
+            key={path}
+            onClick={() => navigate(path)}
+            style={{
+              padding: '2px 18px',
+              background: path === '/studio' ? '#388E3C' : '#e0e0e0',
+              color: path === '/studio' ? 'white' : '#333',
+              border: 'none',
+              borderRadius: '3px',
+              fontFamily: 'Cinzel, serif',
+              fontWeight: '700',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      <main style={{
+        flex: 1,
+        padding: '10px',
+        color: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        overflow: 'hidden',
+      }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={toggleRecording}
+            style={{
+              flex: 1, padding: '12px',
+              background: isRecording ? '#cc0000' : (text ? '#2ecc71' : '#222'),
+              color: '#fff', border: '1px solid #d4af37', fontWeight: 'bold', borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            {isRecording ? '⏹ STOP RECORDING' : '🎤 START RECORDING'}
+          </button>
+          <input ref={uploadRef} type="file" accept="audio/*,video/*" style={{ display: 'none' }} onChange={handleUpload} />
+          <button
+            onClick={() => uploadRef.current.click()}
+            style={{
+              flex: 1, padding: '12px', background: '#222',
+              color: '#d4af37', border: '1px solid #d4af37', borderRadius: '4px', cursor: 'pointer'
+            }}
+          >
+            📁 Upload Audio
+          </button>
+        </div>
+
+        <div style={{ flex: 1, border: '1px solid #d4af37', background: '#111', overflowY: 'auto', minHeight: 0 }}>
+          <textarea
+            value={text}
+            onChange={(e) => { setText(e.target.value); finalTranscriptRef.current = e.target.value; }}
+            placeholder="Speak or type your story here..."
+            style={{
+              width: '100%', height: '100%', background: 'transparent', color: '#fff',
+              border: 'none', padding: '12px', fontSize: '18px', outline: 'none', resize: 'none',
+              fontFamily: 'serif', lineHeight: '1.6', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        <div style={{ background: '#111', padding: '12px', border: '1px solid #333', flexShrink: 0 }}>
+          <input
+            placeholder="New Chapter Name..."
+            value={newTitle}
