@@ -20,7 +20,7 @@ export default function DedicationPage() {
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '2vh 2vw 0',   // Adjusted from 10vh to 4vh to move the book up
+      padding: '4vh 2vw 0',   // Adjusted from 10vh to 4vh to move the book up
       boxSizing: 'border-box',
     }}>
 
