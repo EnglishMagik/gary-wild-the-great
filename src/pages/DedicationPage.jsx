@@ -10,6 +10,9 @@ export default function DedicationPage() {
     ? dedication
     : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
 
+  // This is our universal spacing unit — every gap in the layout uses this
+  const PAD = '4vw'
+
   return (
     <div style={{
       width: '100%',
@@ -23,49 +26,107 @@ export default function DedicationPage() {
       boxSizing: 'border-box',
     }}>
 
-      {/* CONTENT AREA — sits inside the frame's white/light centre */}
+      {/* 
+        INNER CONTENT AREA
+        We use padding equal to PAD on all sides so the content
+        never touches the leather frame edges.
+        The two halves sit side by side with a gap also equal to PAD.
+      */}
       <div style={{
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        width: '62vw',
-        gap: '4vw',
-        marginTop: '2vh',
+        width: '100%',
+        height: '100vh',
+        padding: `${PAD} ${PAD} ${PAD} ${PAD}`,
+        gap: PAD,
+        boxSizing: 'border-box',
       }}>
 
-        {/* LEFT HALF — dedication text */}
+        {/* LEFT HALF — photo in gold frame, equal space on all 4 sides */}
         <div style={{
-          flex: 1,
+          flex: '0 0 auto',
+          width: `calc(50% - (${PAD} * 1.5))`,
+          height: `calc(100vh - (${PAD} * 2))`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '1rem',
         }}>
+          {/* GOLD FRAME — fills the left half with equal padding all around */}
           <div style={{
-            fontFamily: 'Cinzel, serif',
-            fontSize: 'clamp(0.5rem, 0.8vw, 0.7rem)',
-            color: '#8b6914',
-            letterSpacing: '0.3em',
-            textAlign: 'center',
+            width: '100%',
+            padding: '7px',
+            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
+            borderRadius: '6px',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
+            boxSizing: 'border-box',
           }}>
-            ✦ ✦ ✦
+            <div style={{
+              padding: '5px',
+              background: '#f5ead6',
+              borderRadius: '3px',
+            }}>
+              <img
+                src="/Magicat.jpg"
+                alt="Making Life Magic"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  borderRadius: '2px',
+                }}
+              />
+            </div>
           </div>
-
-          <div style={{
-            width: '60%',
-            height: '1px',
-            background: 'rgba(90,58,24,0.35)',
-          }} />
 
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.8rem, 1.4vw, 1.1rem)',
-            color: '#3a2010',
+            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+            color: '#2a1a08',
             textAlign: 'center',
+            marginTop: '0.5rem',
+          }}>
+            Making Life Magic
+          </div>
+        </div>
+
+        {/* RIGHT HALF — dedication text, left-aligned */}
+        <div style={{
+          flex: 1,
+          height: `calc(100vh - (${PAD} * 2))`,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',   // left-aligns all children
+          justifyContent: 'center',
+          gap: '1rem',
+        }}>
+
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: 'clamp(0.5rem, 0.8vw, 0.7rem)',
+            color: '#8b6914',
+            letterSpacing: '0.3em',
+          }}>
+            ✦ ✦ ✦
+          </div>
+
+          <div style={{
+            width: '80%',
+            height: '1px',
+            background: 'rgba(90,58,24,0.35)',
+          }} />
+
+          {/* TEXT — left aligned, not centred */}
+          <div style={{
+            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontSize: 'clamp(0.85rem, 1.5vw, 1.15rem)',
+            color: '#3a2010',
+            textAlign: 'left',
             lineHeight: 2,
             whiteSpace: 'pre-line',
           }}>
@@ -73,12 +134,12 @@ export default function DedicationPage() {
           </div>
 
           <div style={{
-            width: '60%',
+            width: '80%',
             height: '1px',
             background: 'rgba(90,58,24,0.35)',
           }} />
 
-          {/* ENTER BUTTON */}
+          {/* ENTER BUTTON — left aligned to match text */}
           <button
             onClick={() => navigate('/contents')}
             style={{
@@ -121,53 +182,6 @@ export default function DedicationPage() {
             onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.35)'}
           >
             ← COVER
-          </div>
-        </div>
-
-        {/* RIGHT HALF — photo in gold frame */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.75rem',
-        }}>
-          {/* GOLD FRAME */}
-          <div style={{
-            width: '85%',
-            padding: '7px',
-            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
-            borderRadius: '6px',
-            boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
-          }}>
-            <div style={{
-              padding: '5px',
-              background: '#f5ead6',
-              borderRadius: '3px',
-            }}>
-              <img
-                src="/Magicat.jpg"
-                alt="Making Life Magic"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  borderRadius: '2px',
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{
-            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
-            color: '#2a1a08',
-            textAlign: 'center',
-          }}>
-            Making Life Magic
           </div>
         </div>
 
