@@ -10,6 +10,7 @@ export default function DedicationPage() {
     ? dedication
     : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
 
+return (
 <div style={{
   width: '100%',
   minHeight: '100vh',
