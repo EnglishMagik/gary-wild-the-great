@@ -20,13 +20,14 @@ export default function DedicationPage() {
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '4vh 2vw 0',   // Adjusted from 10vh to 4vh to move the book up
+      padding: '0 2vw', // Keeping sides clear, but top at 0
       boxSizing: 'border-box',
     }}>
 
       {/* OPEN BOOK */}
       <div style={{
         position: 'relative',
+        marginTop: '12vh', // <--- CHANGE THIS TO MOVE DOWN (15vh) OR UP (10vh)
         width: 'min(75vw, calc(65vh * 1025 / 571))',
         aspectRatio: '1025 / 571',
       }}>
