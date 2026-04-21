@@ -14,9 +14,7 @@ export default function DedicationPage() {
     <div style={{
       width: '100%',
       minHeight: '100vh',
-      backgroundImage: "url('/leathers.png')",
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
+    background: '#ffffff',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -128,9 +126,10 @@ export default function DedicationPage() {
           {/* DEDICATION TEXT */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
-            fontStyle: 'italic',
-            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
-            color: '#3a2010',
+           fontStyle: 'italic',
+fontWeight: 'bold',
+fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+color: '#3a2010',
             textAlign: 'center',
             lineHeight: 2,
             whiteSpace: 'pre-line',
