@@ -28,7 +28,7 @@ export default function DedicationPage() {
       <div style={{
         position: 'relative',
         marginTop: '13.5vh', // <--- This is the "Wee Nudge" (Changed from 12vh)
-        width: 'min(75vw, calc(65vh * 1025 / 571))',
+        width: 'min(70vw, calc(60vh * 1025 / 571))'
         aspectRatio: '1025 / 571',
       }}>
         <img
