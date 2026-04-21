@@ -17,44 +17,6 @@ export default function ChaptersPage() {
     }
   }
 
-  const CircleBtn = ({ src, alt, onClick, size = 60 }) => (
-    <div
-      onClick={onClick}
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        borderRadius: '50%',
-        background: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        boxShadow: '0 3px 12px rgba(0,0,0,0.3)',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'scale(1.1)'
-        e.currentTarget.style.boxShadow = '0 5px 20px rgba(0,0,0,0.45)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'scale(1)'
-        e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.3)'
-      }}
-    >
-      <img
-        src={src}
-        alt={alt}
-        style={{
-          width: '200%',
-          height: '200%',
-          objectFit: 'contain',
-        }}
-      />
-    </div>
-  )
-
   return (
     <div style={{
       width: '100%',
@@ -70,12 +32,27 @@ export default function ChaptersPage() {
       boxSizing: 'border-box',
     }}>
 
-      {/* KEY CIRCLE — back to /contents */}
-      <CircleBtn
-        src="/gary_book_key.png"
+      {/* KEY — no circle, dimensional_key.png, double size */}
+      <img
+        src="/dimensional_key.png"
         alt="Back to Contents"
         onClick={() => navigate('/contents')}
-        size={65}
+        style={{
+          width: '130px',
+          height: 'auto',
+          cursor: 'pointer',
+          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))',
+          transition: 'transform 0.2s, filter 0.2s',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)'
+          e.currentTarget.style.filter = 'drop-shadow(0 6px 18px rgba(0,0,0,0.7)) brightness(1.15)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.filter = 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))'
+        }}
       />
 
       {/* TITLE */}
@@ -127,7 +104,7 @@ export default function ChaptersPage() {
             key={ch.id}
             onClick={() => handleChapterClick(ch.id)}
             style={{
-              background: 'rgba(210,180,140,0.92)',
+              background: 'rgba(255,255,255,0.92)',
               borderRadius: '3px',
               padding: '4px 1.2rem',
               cursor: 'pointer',
