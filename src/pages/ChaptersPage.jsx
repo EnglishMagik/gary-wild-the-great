@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
 
@@ -35,11 +35,10 @@ export default function ChaptersPage() {
 
       <style>{`
         @keyframes keyGlow {
-          0%   { filter: drop-shadow(0 0 4px rgba(255,220,100,0)) brightness(1); }
-          50%  { filter: drop-shadow(0 0 18px rgba(255,220,100,0.9)) drop-shadow(0 0 35px rgba(255,180,50,0.6)) brightness(1.25); }
-          100% { filter: drop-shadow(0 0 4px rgba(255,220,100,0)) brightness(1); }
+          0%   { filter: drop-shadow(0 0 4px rgba(100,149,237,0)) brightness(1); }
+          50%  { filter: drop-shadow(0 0 18px rgba(100,149,237,0.9)) drop-shadow(0 0 35px rgba(50,100,255,0.6)) brightness(1.25); }
+          100% { filter: drop-shadow(0 0 4px rgba(100,149,237,0)) brightness(1); }
         }
-
         @keyframes titleFlow {
           0%   { background-position: 0% 50%; }
           50%  { background-position: 100% 50%; }
@@ -47,7 +46,7 @@ export default function ChaptersPage() {
         }
       `}</style>
 
-      {/* KEY — glowing, no rectangle */}
+      {/* KEY — blue glow, bigger, no rectangle */}
       <div style={{
         position: 'relative',
         display: 'flex',
@@ -57,10 +56,10 @@ export default function ChaptersPage() {
       }}>
         <div style={{
           position: 'absolute',
-          width: '200px',
-          height: '100px',
+          width: '240px',
+          height: '120px',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, transparent 75%)',
+          background: 'radial-gradient(ellipse at center, rgba(100,149,237,0.15) 0%, transparent 75%)',
           pointerEvents: 'none',
         }} />
         <img
@@ -69,7 +68,7 @@ export default function ChaptersPage() {
           alt="Back to Contents"
           onClick={() => navigate('/contents')}
           style={{
-            width: '130px',
+            width: '160px',
             height: 'auto',
             cursor: 'pointer',
             position: 'relative',
@@ -82,7 +81,7 @@ export default function ChaptersPage() {
         />
       </div>
 
-      {/* TITLE — living liquid metal */}
+      {/* TITLE — living liquid silver */}
       <div style={{
         position: 'relative',
         overflow: 'hidden',
@@ -111,15 +110,17 @@ export default function ChaptersPage() {
         </h1>
       </div>
 
-      {/* CHAPTER LIST */}
+      {/* CHAPTER LIST — rounded pills, shorter, centered */}
       <div style={{
-        width: '100%',
-        maxWidth: '680px',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.4rem',
+        width: 'auto',
+        minWidth: '320px',
+        maxWidth: '520px',
         padding: '0 1rem',
         boxSizing: 'border-box',
+        alignItems: 'center',
       }}>
         {chapters.length === 0 && (
           <p style={{
@@ -139,16 +140,17 @@ export default function ChaptersPage() {
             onClick={() => handleChapterClick(ch.id)}
             style={{
               background: 'rgba(253,248,240,0.85)',
-              borderRadius: '3px',
-              padding: '6px 1.2rem',
+              borderRadius: '999px',
+              padding: '6px 1.5rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '1.2rem',
+              gap: '1rem',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
               border: '1px solid rgba(192,192,192,0.6)',
               borderLeft: '3px solid #888',
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              width: '100%',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateX(5px)'
@@ -175,6 +177,7 @@ export default function ChaptersPage() {
               fontSize: '1rem',
               color: '#1a1208',
               fontStyle: 'italic',
+              whiteSpace: 'nowrap',
             }}>
               {ch.title}
             </span>

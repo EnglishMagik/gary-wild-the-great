@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-data'
 import { useBookStore } from '../store/bookStore'
 
 export default function DedicationPage() {
@@ -25,15 +25,11 @@ export default function DedicationPage() {
     }}>
       <div style={{
         position: 'relative',
-        width: '100%',
-        maxWidth: '480px',
-        aspectRatio: '3 / 4',
+        width: 'min(90vw, 500px)',
+        height: 'min(90vh, 700px)',
         backgroundImage: "url('/Single_page.png')",
         backgroundSize: '100% 100%',
         backgroundRepeat: 'no-repeat',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         borderRadius: '8px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
       }}>
@@ -42,29 +38,40 @@ export default function DedicationPage() {
         <div style={{
           position: 'absolute',
           top: '8%',
-          left: '12%',
-          right: '12%',
-          bottom: '12%',
+          left: '15%',
+          right: '15%',
+          bottom: '10%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '1.2rem',
+          gap: '1rem',
         }}>
 
-          {/* IMAGE */}
+          {/* IMAGE IN FRAME */}
           <div style={{
             width: '100%',
+            padding: '6px',
+            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
             borderRadius: '6px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-            border: '2px solid rgba(139,105,20,0.3)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
           }}>
-            <img
-              src="/Magicat.jpg"
-              alt="Making Life Magic"
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-            />
+            <div style={{
+              padding: '4px',
+              background: '#f5ead6',
+              borderRadius: '3px',
+            }}>
+              <img
+                src="/Magicat.jpg"
+                alt="Making Life Magic"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  borderRadius: '2px',
+                }}
+              />
+            </div>
           </div>
 
           {/* CAPTION */}
@@ -72,7 +79,7 @@ export default function DedicationPage() {
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(1rem, 2.5vw, 1.3rem)',
+            fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
             color: '#2a1a08',
             textAlign: 'center',
             lineHeight: 1.3,
@@ -91,10 +98,10 @@ export default function DedicationPage() {
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
-            fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
+            fontSize: 'clamp(0.75rem, 1.5vw, 0.95rem)',
             color: '#3a2010',
             textAlign: 'center',
-            lineHeight: 2,
+            lineHeight: 1.9,
             whiteSpace: 'pre-line',
           }}>
             {displayText}
@@ -131,7 +138,7 @@ export default function DedicationPage() {
 
         </div>
 
-        {/* SUBTLE BACK LINK — bottom left, barely visible */}
+        {/* SUBTLE BACK LINK */}
         <div
           onClick={() => navigate('/')}
           style={{
