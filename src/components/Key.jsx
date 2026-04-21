@@ -8,19 +8,20 @@ export default function Key({ onKeyUsed }) {
 
   useEffect(() => {
     if (!landed) return
-    gsap.to(keyRef.current, {
-      filter: 'drop-shadow(0 0 20px white) drop-shadow(0 0 40px rgba(100,149,237,1)) drop-shadow(0 0 60px rgba(0,100,255,0.9))',
-      duration: 0.25,
-      repeat: 5,
-      yoyo: true,
-      ease: 'sine.inOut',
-      onComplete: () => {
-        gsap.to(keyRef.current, {
-          filter: 'none',
-          duration: 0.2,
-        })
+    const el = keyRef.current
+    gsap.fromTo(el,
+      { filter: 'none' },
+      {
+        filter: 'drop-shadow(0 0 20px white) drop-shadow(0 0 40px rgba(100,149,237,1)) drop-shadow(0 0 60px rgba(0,100,255,0.9))',
+        duration: 0.3,
+        repeat: 5,
+        yoyo: true,
+        ease: 'sine.inOut',
+        onComplete: () => {
+          gsap.to(el, { filter: 'none', duration: 0.2 })
+        }
       }
-    })
+    )
   }, [landed])
 
   const handleClick = () => {

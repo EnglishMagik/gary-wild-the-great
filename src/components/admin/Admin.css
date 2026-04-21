@@ -1,24 +1,339 @@
+/* =====================
+   ADMIN LAYOUT
+===================== */
 .admin-page-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: #f8f8f8;
 }
 
-/* FIXED: uses global nav height */
 .admin-layout {
   display: flex;
-  margin-top: var(--nav-height);
-  height: calc(100vh - var(--nav-height));
+  flex: 1;
+  margin-top: 45px;
+  min-height: calc(100vh - 45px);
 }
 
 .admin-sidebar {
-  width: 200px;
-  background-color: #f4f4f4;
-  padding: 20px;
-  border-right: 1px solid #ddd;
+  width: 180px;
+  background: #2c2c2c;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
+.admin-sidebar-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(201,168,76,0.6);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.admin-nav-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.admin-nav-link:hover {
+  background: rgba(201,168,76,0.15);
+  color: rgba(255,255,255,0.9);
+}
 .admin-nav-link.active {
-  background-color: #388E3C;
+  background: #388E3C;
   color: white;
+}
+
+.admin-main {
+  flex: 1;
+  padding: 2rem;
+  background: #f8f8f8;
+  overflow-y: auto;
+}
+
+/* =====================
+   PANEL
+===================== */
+.admin-panel {
+  max-width: 800px;
+}
+
+.admin-panel-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  color: #1a1208;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #c9a84c;
+}
+
+.admin-subtitle {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.admin-empty {
+  color: #999;
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+/* =====================
+   CARDS
+===================== */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: #c9a84c;
+  margin-bottom: 0.25rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  color: #1a1208;
+  font-family: 'Playfair Display', serif;
+}
+
+.card-meta {
+  font-size: 0.78rem;
+  color: #999;
+  margin-top: 0.2rem;
+}
+
+.card-preview {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 0.25rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.inline-edit {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  border: 1px solid #c9a84c;
+  border-radius: 3px;
+  outline: none;
+}
+
+/* =====================
+   BUTTONS
+===================== */
+.icon-btn {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.icon-btn:hover { background: #f0f0f0; }
+
+.btn-danger {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+.btn-danger:hover { background: #e74c3c; color: white; }
+
+.btn-primary {
+  background: #388E3C;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #2e7d32; }
+
+.btn-secondary {
+  background: white;
+  color: #1a1208;
+  border: 1px solid #c9a84c;
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: #c9a84c; color: white; }
+
+/* =====================
+   ADD FORM
+===================== */
+.add-form {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+
+.add-form-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  color: #1a1208;
+  margin-bottom: 0.75rem;
+}
+
+.add-form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.form-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: #c9a84c; }
+
+/* =====================
+   DEDICATION
+===================== */
+.dedication-textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: 'Crimson Text', serif;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+.dedication-textarea:focus { border-color: #c9a84c; }
+
+/* =====================
+   EXPORT
+===================== */
+.export-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.export-card h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #1a1208;
+}
+.export-card p {
+  font-size: 0.88rem;
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+.export-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* =====================
+   MEDIA
+===================== */
+.media-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.media-upload-btn {
+  background: white;
+  border: 2px dashed #c9a84c;
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #555;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.media-upload-btn:hover { background: #fffbf0; border-color: #8b6914; }
+
+.media-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.media-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.media-card-icon { font-size: 1.5rem; }
+.media-card-thumb {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.media-card-name {
+  font-size: 0.78rem;
+  color: #555;
+  word-break: break-all;
 }
