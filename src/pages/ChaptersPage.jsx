@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
 
@@ -7,6 +7,22 @@ export default function ChaptersPage() {
   const chapters = useBookStore((s) => s.chapters)
   const setCurrentPage = useBookStore((s) => s.setCurrentPage)
   const getFlatPages = useBookStore((s) => s.getFlatPages)
+  const keyRef = useRef(null)
+
+  // Shimmer animation on the key
+  useEffect(() => {
+    const el = keyRef.current
+    if (!el) return
+    let forward = true
+    let val = 1
+    const interval = setInterval(() => {
+      val = forward ? val + 0.03 : val - 0.03
+      if (val >= 1.18) forward = false
+      if (val <= 1.0) forward = true
+      el.style.filter = `drop-shadow(0 4px 18px rgba(0,0,0,0.6)) brightness(${val})`
+    }, 40)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleChapterClick = (chapterId) => {
     const allPages = getFlatPages()
@@ -32,46 +48,59 @@ export default function ChaptersPage() {
       boxSizing: 'border-box',
     }}>
 
-      {/* KEY — no circle, dimensional_key.png, double size */}
-      <img
-        src="/dimensional_key.png"
-        alt="Back to Contents"
-        onClick={() => navigate('/contents')}
-        style={{
-          width: '130px',
-          height: 'auto',
-          cursor: 'pointer',
-          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))',
-          transition: 'transform 0.2s, filter 0.2s',
-          flexShrink: 0,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)'
-          e.currentTarget.style.filter = 'drop-shadow(0 6px 18px rgba(0,0,0,0.7)) brightness(1.15)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.filter = 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))'
-        }}
-      />
-
-      {/* TITLE */}
+      {/* KEY — radial spotlight, shimmer, no rectangle */}
       <div style={{
-        background: 'rgba(210,180,140,0.92)',
-        border: '2px solid #4a7c59',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '0.5rem',
+      }}>
+        {/* Radial spotlight behind key */}
+        <div style={{
+          position: 'absolute',
+          width: '200px',
+          height: '100px',
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 50%, transparent 75%)',
+          pointerEvents: 'none',
+        }} />
+        <img
+          ref={keyRef}
+          src="/dimensional_key.png"
+          alt="Back to Contents"
+          onClick={() => navigate('/contents')}
+          style={{
+            width: '130px',
+            height: 'auto',
+            cursor: 'pointer',
+            position: 'relative',
+            zIndex: 1,
+            transition: 'transform 0.2s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        />
+      </div>
+
+      {/* TITLE — silver/pewter plaque */}
+      <div style={{
+        background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
+        border: '1px solid rgba(180,180,180,0.8)',
         borderRadius: '3px',
-        padding: '3px 2.5rem',
-        marginTop: '1rem',
+        padding: '5px 2.5rem',
+        marginTop: '0.5rem',
         marginBottom: '1.2rem',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.25)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5)',
       }}>
         <h1 style={{
           fontFamily: 'Cinzel, serif',
-          color: '#3a1f00',
+          color: '#2a2a2a',
           fontSize: 'clamp(0.9rem, 2vw, 1.4rem)',
-          letterSpacing: '0.15em',
+          letterSpacing: '0.2em',
           margin: 0,
           padding: 0,
+          textShadow: '0 1px 0 rgba(255,255,255,0.6)',
         }}>
           LIFE CHAPTERS
         </h1>
@@ -104,15 +133,16 @@ export default function ChaptersPage() {
             key={ch.id}
             onClick={() => handleChapterClick(ch.id)}
             style={{
-              background: 'rgba(255,255,255,0.92)',
+              background: 'rgba(253,248,240,0.85)',
               borderRadius: '3px',
-              padding: '4px 1.2rem',
+              padding: '6px 1.2rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '1.2rem',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              borderLeft: '3px solid #4a7c59',
+              border: '1px solid rgba(192,192,192,0.6)',
+              borderLeft: '3px solid #888',
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}
             onMouseEnter={(e) => {
@@ -128,7 +158,7 @@ export default function ChaptersPage() {
               fontFamily: 'Cinzel, serif',
               fontStyle: 'italic',
               fontSize: '0.65rem',
-              color: '#3a1f00',
+              color: '#555',
               letterSpacing: '0.2em',
               minWidth: '70px',
               flexShrink: 0,
