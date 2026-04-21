@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBookStore } from '../store/bookStore';
 
 export default function StudioPage() {
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [status, setStatus] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -15,6 +17,12 @@ export default function StudioPage() {
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
   const uploadRef = useRef(null);
+  const textRef = useRef('');
+
+  // Keep textRef in sync so handleSave always has latest text
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -78,136 +86,6 @@ export default function StudioPage() {
       const data = await res.json();
       const transcribed = data.text || '';
 
-      setText((prev) => prev ? prev + '\n\n' + transcribed : transcribed);
-      finalTranscriptRef.current = text + '\n\n' + transcribed;
-      setStatus("✅ Transcription complete! Edit the text then save.");
-    } catch (err) {
-      setStatus("❌ Upload failed. Check your API key in .env");
-    }
-
-    e.target.value = '';
-  };
-
-  const handleSave = () => {
-    if (!text.trim()) return setStatus("⚠️ Please enter text first.");
-    processVoiceInput(text, selectedId, newTitle);
-    setText('');
-    finalTranscriptRef.current = '';
-    setNewTitle('');
-    setStatus("✅ Saved! Check your Table of Contents.");
-  };
-
-  const handleDelete = () => {
-    if (!selectedId) return setStatus("⚠️ Select a chapter to delete.");
-    if (window.confirm("Permanently delete this chapter and all its text?")) {
-      deleteChapter(selectedId);
-      setSelectedId('');
-      setStatus("🗑️ Deleted.");
-    }
-  };
-
-  return (
-    <main style={{
-      padding: '10px',
-      background: '#000',
-      color: '#fff',
-      height: '85vh',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px'
-    }}>
-      {/* RECORD / UPLOAD BUTTONS */}
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          onClick={toggleRecording}
-          style={{
-            flex: 1, padding: '12px',
-            background: isRecording ? '#cc0000' : (text ? '#2ecc71' : '#222'),
-            color: '#fff', border: '1px solid #d4af37', fontWeight: 'bold', borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          {isRecording ? '⏹ STOP RECORDING' : '🎤 START RECORDING'}
-        </button>
-
-        {/* Hidden file input */}
-        <input
-          ref={uploadRef}
-          type="file"
-          accept="audio/*,video/*"
-          style={{ display: 'none' }}
-          onChange={handleUpload}
-        />
-        <button
-          onClick={() => uploadRef.current.click()}
-          style={{
-            flex: 1, padding: '12px', background: '#222',
-            color: '#d4af37', border: '1px solid #d4af37', borderRadius: '4px', cursor: 'pointer'
-          }}
-        >
-          📁 Upload Audio
-        </button>
-      </div>
-
-      {/* SCROLLABLE TEXT BOX */}
-      <div style={{
-        flex: '1',
-        minHeight: '120px',
-        border: '1px solid #d4af37',
-        background: '#111',
-        overflowY: 'auto'
-      }}>
-        <textarea
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            finalTranscriptRef.current = e.target.value;
-          }}
-          placeholder="Speak or type your story here..."
-          style={{
-            width: '100%', height: '100%', background: 'transparent', color: '#fff',
-            border: 'none', padding: '12px', fontSize: '18px', outline: 'none', resize: 'none',
-            fontFamily: 'serif', lineHeight: '1.6'
-          }}
-        />
-      </div>
-
-      {/* CHAPTER MANAGEMENT */}
-      <div style={{ background: '#111', padding: '12px', border: '1px solid #333' }}>
-        <input
-          placeholder="New Chapter Name..."
-          value={newTitle}
-          onChange={(e) => { setNewTitle(e.target.value); setSelectedId(''); }}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#222', color: '#fff', border: '1px solid #444' }}
-        />
-        <div style={{ display: 'flex', gap: '5px' }}>
-          <select
-            value={selectedId}
-            onChange={(e) => { setSelectedId(e.target.value); setNewTitle(''); }}
-            style={{ flex: 1, padding: '10px', background: '#222', color: '#fff' }}
-          >
-            <option value="">-- Add to / Select Chapter --</option>
-            {chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.title}</option>)}
-          </select>
-          {selectedId && (
-            <button onClick={handleDelete} title="Delete Chapter" style={{ background: '#441111', color: '#ff4d4d', border: '1px solid #ff4d4d', padding: '0 15px', borderRadius: '4px', cursor: 'pointer' }}>🗑️</button>
-          )}
-        </div>
-      </div>
-
-      {/* SAVE BUTTON */}
-      <button
-        onClick={handleSave}
-        style={{
-          width: '100%', padding: '16px', background: '#d4af37', color: '#000',
-          fontWeight: 'bold', border: 'none', fontSize: '18px', borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        SAVE TO BOOK
-      </button>
-
-      {status && <p style={{ textAlign: 'center', color: '#d4af37', margin: '5px 0' }}>{status}</p>}
-    </main>
-  );
-}
+      const updated = textRef.current ? textRef.current + '\n\n' + transcribed : transcribed;
+      setText(updated);
+      finalTranscriptRef.current = upda
