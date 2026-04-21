@@ -27,7 +27,7 @@ backgroundPosition: 'center',
       {/* OPEN BOOK */}
       <div style={{
         position: 'relative',
-        width: 'min(96vw, calc(96vh * 1025 / 571))',
+        width: 'min(75vw, calc(65vh * 1025 / 571))',
         aspectRatio: '1025 / 571',
       }}>
         <img
