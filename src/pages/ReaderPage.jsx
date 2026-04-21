@@ -1,11 +1,55 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
 
+// ─── PAGINATION ENGINE ───────────────────────────────────────────────
+// Splits all chapter text into visual page slots based on chars-per-page
+const CHARS_PER_PAGE = 600
+
+function buildPageSlots(chapters) {
+  const slots = []
+  chapters.forEach((ch, chIndex) => {
+    // Combine all pages of this chapter into one long text
+    const fullText = ch.pages.map(p => p.text).join('\n\n')
+    const paragraphs = fullText.split('\n').filter(p => p.trim())
+    
+    let currentSlotParas = []
+    let currentLen = 0
+    let isFirstSlot = true
+
+    const flushSlot = () => {
+      if (currentSlotParas.length === 0) return
+      slots.push({
+        chapterId: ch.id,
+        chapterTitle: ch.title,
+        chapterNumber: chIndex + 1,
+        isFirstOfChapter: isFirstSlot,
+        paragraphs: [...currentSlotParas],
+      })
+      isFirstSlot = false
+      currentSlotParas = []
+      currentLen = 0
+    }
+
+    const charsForFirstSlot = CHARS_PER_PAGE - 200 // header takes space
+    
+    paragraphs.forEach(para => {
+      const limit = isFirstSlot ? charsForFirstSlot : CHARS_PER_PAGE
+      if (currentLen + para.length > limit && currentSlotParas.length > 0) {
+        flushSlot()
+      }
+      currentSlotParas.push(para)
+      currentLen += para.length
+    })
+    flushSlot()
+  })
+  return slots
+}
+// ─────────────────────────────────────────────────────────────────────
+
 export default function ReaderPage() {
   const navigate = useNavigate()
-const { currentPageIndex, setCurrentPage, getFlatPages, chapters } = useBookStore()
-const allPages = getFlatPages()
+  const { currentPageIndex, setCurrentPage, chapters } = useBookStore()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   useEffect(() => {
@@ -14,7 +58,10 @@ const allPages = getFlatPages()
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  if (allPages.length === 0) {
+  // Build paginated slots from chapters
+  const slots = buildPageSlots(chapters)
+
+  if (slots.length === 0) {
     return (
       <div style={{
         minHeight: '100vh', background: '#ffffff',
@@ -32,36 +79,17 @@ const allPages = getFlatPages()
     )
   }
 
-  const leftPage = allPages[currentPageIndex]
-  const rightPage = !isMobile ? allPages[currentPageIndex + 1] : null
+  // Clamp currentPageIndex to valid range
+  const safeIndex = Math.min(currentPageIndex, slots.length - 1)
   const pagesPerSpread = isMobile ? 1 : 2
-
-  const isFirstOfChapter = (page) => {
-    if (!page) return false
-    const idx = allPages.indexOf(page)
-    return idx === 0 || allPages[idx - 1].chapterId !== page.chapterId
-  }
-
-  const getChapterNumber = (page) => {
-    if (!page) return null
-    const chapters = [...new Set(allPages.map(p => p.chapterId))]
-    return chapters.indexOf(page.chapterId) + 1
-  }
-
-  const canGoNext = currentPageIndex + pagesPerSpread < allPages.length
-  const canGoPrev = currentPageIndex > 0
-
-  const goNext = () => {
-    if (!canGoNext) return
-    setCurrentPage(currentPageIndex + pagesPerSpread)
-  }
-
-  const goPrev = () => {
-    if (canGoPrev) setCurrentPage(currentPageIndex - pagesPerSpread)
-  }
+  const leftSlot = slots[safeIndex]
+  const rightSlot = !isMobile ? slots[safeIndex + 1] : null
+  const canGoNext = safeIndex + pagesPerSpread < slots.length
+  const canGoPrev = safeIndex > 0
+  const goNext = () => { if (canGoNext) setCurrentPage(safeIndex + pagesPerSpread) }
+  const goPrev = () => { if (canGoPrev) setCurrentPage(safeIndex - pagesPerSpread) }
 
   const textFont = '"Bradley Hand ITC", "Bradley Hand", cursive'
-  const getParagraphs = (text) => text.split('\n').filter(p => p.trim())
 
   const NavBtn = ({ onClick, disabled, label }) => (
     <button
@@ -74,7 +102,6 @@ const allPages = getFlatPages()
         cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.3 : 1,
         padding: '2px 10px',
-        transform: 'scale(0.85)',
         transition: 'background 0.2s',
         flexShrink: 0,
       }}
@@ -93,12 +120,8 @@ const allPages = getFlatPages()
     </button>
   )
 
-  const renderPageContent = (page, pageNum, isLeft) => {
-    if (!page) return null
-    const isFirst = isFirstOfChapter(page)
-    const chNum = getChapterNumber(page)
-    const paragraphs = getParagraphs(page.text)
-
+  const renderSlot = (slot, pageNum, isLeft) => {
+    if (!slot) return null
     return (
       <div style={{
         position: 'absolute',
@@ -108,8 +131,7 @@ const allPages = getFlatPages()
         bottom: '4%',
         zIndex: 3,
       }}>
-
-        {/* PAGE NUMBER — pinned to absolute bottom corner */}
+        {/* PAGE NUMBER */}
         <div style={{
           position: 'absolute',
           bottom: 0,
@@ -127,7 +149,7 @@ const allPages = getFlatPages()
           {pageNum}
         </div>
 
-        {/* INNER CONTENT */}
+        {/* CONTENT AREA */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
@@ -136,125 +158,78 @@ const allPages = getFlatPages()
           flexDirection: 'column',
           overflow: 'hidden',
         }}>
-
-          {/* CHAPTER START PAGE */}
-          {isFirst && (
-            <div style={{
-              textAlign: 'center',
-              paddingTop: '0.8rem',
-              flexShrink: 0,
-            }}>
-              {/* Previous button — top left on chapter pages */}
+          {/* CHAPTER HEADER — first slot of chapter only */}
+          {slot.isFirstOfChapter && (
+            <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0 }}>
               {isLeft && (
                 <div style={{ textAlign: 'left', marginBottom: '0.3rem' }}>
                   <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
                 </div>
               )}
-
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                marginBottom: '0.1rem',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'center', gap: '0.5rem', marginBottom: '0.1rem',
               }}>
                 <img
                   src="/crown.png"
                   alt="Life Chapters"
                   onClick={() => navigate('/chapters')}
                   style={{
-                    width: '75px', height: 'auto',
-                    cursor: 'pointer', opacity: 0.9,
+                    width: '75px', height: 'auto', cursor: 'pointer', opacity: 0.9,
                     filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.25))',
-                    transition: 'opacity 0.2s, transform 0.2s',
-                    flexShrink: 0,
+                    transition: 'opacity 0.2s, transform 0.2s', flexShrink: 0,
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '1'
-                    e.currentTarget.style.transform = 'scale(1.08)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '0.9'
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.08)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'scale(1)' }}
                 />
                 <div style={{
-                  fontFamily: 'Cinzel, serif',
-                  fontStyle: 'italic',
-                  fontWeight: '900',
-                  fontSize: 'clamp(0.4rem, 0.65vw, 0.55rem)',
-                  color: '#5a3a18',
-                  letterSpacing: '0.3em',
-                  textTransform: 'uppercase',
+                  fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '900',
+                  fontSize: 'clamp(0.4rem, 0.65vw, 0.55rem)', color: '#5a3a18',
+                  letterSpacing: '0.3em', textTransform: 'uppercase',
                 }}>
-                  Chapter {chNum}
+                  Chapter {slot.chapterNumber}
                 </div>
               </div>
-
               <div style={{
-                fontFamily: textFont,
-                fontStyle: 'italic',
-                fontWeight: 'bold',
-                fontSize: 'clamp(0.85rem, 1.5vw, 1.2rem)',
-                color: '#2a1a08',
-                lineHeight: 1.15,
+                fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold',
+                fontSize: 'clamp(0.85rem, 1.5vw, 1.2rem)', color: '#2a1a08', lineHeight: 1.15,
               }}>
-                {page.chapterTitle}
+                {slot.chapterTitle}
               </div>
               <div style={{
-                width: '40%', height: '1px',
-                background: 'rgba(90,58,24,0.4)',
+                width: '40%', height: '1px', background: 'rgba(90,58,24,0.4)',
                 margin: '0.7rem auto 1rem auto',
               }} />
             </div>
           )}
 
-          {/* NON-CHAPTER PAGE */}
-          {!isFirst && (
+          {/* CONTINUATION PAGE HEADER */}
+          {!slot.isFirstOfChapter && (
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              paddingTop: '1rem',
-              marginBottom: '0.5rem',
-              flexShrink: 0,
+              display: 'flex', alignItems: 'center',
+              paddingTop: '1rem', marginBottom: '0.5rem', flexShrink: 0,
             }}>
-              {isLeft && (
-                <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
-              )}
+              {isLeft && <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />}
               <div style={{
-                fontFamily: textFont,
-                fontStyle: 'italic',
-                fontSize: 'clamp(0.4rem, 0.6vw, 0.55rem)',
-                color: '#5a3a18',
-                flex: 1,
-                textAlign: 'center',
-                padding: '0 0.25rem',
+                fontFamily: textFont, fontStyle: 'italic',
+                fontSize: 'clamp(0.4rem, 0.6vw, 0.55rem)', color: '#5a3a18',
+                flex: 1, textAlign: 'center', padding: '0 0.25rem',
               }}>
-                {page.chapterTitle}
+                {slot.chapterTitle}
               </div>
-              {!isLeft && (
-                <NavBtn onClick={goNext} disabled={!canGoNext} label="Next" />
-              )}
+              {!isLeft && <NavBtn onClick={goNext} disabled={!canGoNext} label="Next" />}
             </div>
           )}
 
           {/* PAGE TEXT */}
           <div style={{
-            fontFamily: textFont,
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontSize: 'clamp(0.72rem, 1.15vw, 0.98rem)',
-            color: '#2a1a08',
-            lineHeight: 1.78,
-            overflow: 'hidden',
-            flex: 1,
-            wordBreak: 'break-word',
-            overflowWrap: 'break-word',
+            fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold',
+            fontSize: 'clamp(0.72rem, 1.15vw, 0.98rem)', color: '#2a1a08',
+            lineHeight: 1.78, overflow: 'hidden', flex: 1,
+            wordBreak: 'break-word', overflowWrap: 'break-word',
           }}>
-            {paragraphs.map((para, i) => (
-              <p key={i} style={{ marginBottom: '0.75rem', marginTop: 0 }}>
-                {para}
-              </p>
+            {slot.paragraphs.map((para, i) => (
+              <p key={i} style={{ marginBottom: '0.75rem', marginTop: 0 }}>{para}</p>
             ))}
           </div>
         </div>
@@ -262,26 +237,46 @@ const allPages = getFlatPages()
     )
   }
 
+  // ── DESKTOP ──
   const renderDesktop = () => (
     <div style={{
-      width: '100%', height: '100vh',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '2vh 3vw', boxSizing: 'border-box', background: '#ffffff',
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#ffffff',
+      padding: '2vh 2vw',
+      boxSizing: 'border-box',
     }}>
+      {/* 
+        KEY FIX FOR SQUASHING:
+        Use aspect-ratio to maintain 1025:571 book proportions.
+        Max out width but never exceed height.
+      */}
       <div style={{
-        position: 'relative', width: '82vw',
-        maxWidth: '1100px', height: '88vh',
+        position: 'relative',
+        width: 'min(96vw, calc(96vh * 1025 / 571))',
+        aspectRatio: '1025 / 571',
       }}>
-        <img src="/book_pages.png" alt="Book pages" style={{
-          width: '100%', height: '100%', objectFit: 'fill',
-          display: 'block', zIndex: 2, pointerEvents: 'none',
-        }}/>
-        {renderPageContent(leftPage, currentPageIndex + 1, true)}
-        {rightPage && renderPageContent(rightPage, currentPageIndex + 2, false)}
+        <img
+          src="/book_pages.png"
+          alt="Book pages"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'fill',
+            display: 'block',
+            pointerEvents: 'none',
+          }}
+        />
+        {renderSlot(leftSlot, safeIndex + 1, true)}
+        {rightSlot && renderSlot(rightSlot, safeIndex + 2, false)}
       </div>
     </div>
   )
 
+  // ── MOBILE ──
   const renderMobile = () => (
     <div style={{
       width: '100%', height: '100vh',
@@ -303,64 +298,37 @@ const allPages = getFlatPages()
             fontStyle: 'italic', fontSize: 'clamp(1rem, 3vw, 1.2rem)',
             color: '#5a3a18', fontWeight: 'bold', letterSpacing: '0.2em',
           }}>
-            {currentPageIndex + 1}
+            {safeIndex + 1}
           </div>
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0,
-            bottom: '2.5rem', display: 'flex',
-            flexDirection: 'column', overflow: 'hidden',
+            bottom: '2.5rem', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
-            {isFirstOfChapter(leftPage) ? (
-              <div style={{
-                textAlign: 'center', paddingTop: '0.8rem',
-                flexShrink: 0, marginBottom: '0.5rem',
-              }}>
+            {leftSlot?.isFirstOfChapter ? (
+              <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0, marginBottom: '0.5rem' }}>
                 <div style={{ textAlign: 'left', marginBottom: '0.3rem' }}>
                   <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
                 </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '0.4rem', marginBottom: '0.1rem',
-                }}>
-                  <img src="/crown.png" alt="Life Chapters"
-                    onClick={() => navigate('/chapters')}
-                    style={{ width: '40px', height: 'auto', cursor: 'pointer', opacity: 0.9 }}
-                  />
-                  <div style={{
-                    fontFamily: 'Cinzel, serif', fontStyle: 'italic',
-                    fontWeight: '900', fontSize: 'clamp(0.5rem, 2vw, 0.65rem)',
-                    color: '#5a3a18', letterSpacing: '0.3em',
-                  }}>
-                    Chapter {getChapterNumber(leftPage)}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.1rem' }}>
+                  <img src="/crown.png" alt="Life Chapters" onClick={() => navigate('/chapters')}
+                    style={{ width: '40px', height: 'auto', cursor: 'pointer', opacity: 0.9 }} />
+                  <div style={{ fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '900', fontSize: 'clamp(0.5rem, 2vw, 0.65rem)', color: '#5a3a18', letterSpacing: '0.3em' }}>
+                    Chapter {leftSlot?.chapterNumber}
                   </div>
                 </div>
-                <div style={{
-                  fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold',
-                  fontSize: 'clamp(0.9rem, 4vw, 1.2rem)', color: '#2a1a08', lineHeight: 1.15,
-                }}>
-                  {leftPage?.chapterTitle}
+                <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.9rem, 4vw, 1.2rem)', color: '#2a1a08', lineHeight: 1.15 }}>
+                  {leftSlot?.chapterTitle}
                 </div>
-                <div style={{
-                  width: '40%', height: '1px', background: 'rgba(90,58,24,0.4)',
-                  margin: '0.7rem auto 1rem auto',
-                }}/>
+                <div style={{ width: '40%', height: '1px', background: 'rgba(90,58,24,0.4)', margin: '0.7rem auto 1rem auto' }}/>
               </div>
             ) : (
-              <div style={{
-                display: 'flex', justifyContent: 'space-between',
-                alignItems: 'center', flexShrink: 0,
-                paddingTop: '1rem', marginBottom: '0.5rem',
-              }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, paddingTop: '1rem', marginBottom: '0.5rem' }}>
                 <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
                 <NavBtn onClick={goNext} disabled={!canGoNext} label="Next" />
               </div>
             )}
-            <div style={{
-              fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold',
-              fontSize: 'clamp(0.8rem, 3vw, 1rem)', color: '#2a1a08',
-              lineHeight: 1.75, overflow: 'hidden', flex: 1, wordBreak: 'break-word',
-            }}>
-              {getParagraphs(leftPage?.text || '').map((para, i) => (
+            <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.8rem, 3vw, 1rem)', color: '#2a1a08', lineHeight: 1.75, overflow: 'hidden', flex: 1, wordBreak: 'break-word' }}>
+              {leftSlot?.paragraphs.map((para, i) => (
                 <p key={i} style={{ marginBottom: '0.7rem', marginTop: 0 }}>{para}</p>
               ))}
             </div>
@@ -371,10 +339,7 @@ const allPages = getFlatPages()
   )
 
   return (
-    <div style={{
-      width: '100%', height: '100vh',
-      background: '#ffffff', overflow: 'hidden',
-    }}>
+    <div style={{ width: '100%', height: '100vh', background: '#ffffff', overflow: 'hidden' }}>
       {isMobile ? renderMobile() : renderDesktop()}
     </div>
   )
