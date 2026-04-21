@@ -18,7 +18,8 @@ export default function App() {
       <Routes>
         <Route path="/"                           element={<HomePage />} />
         <Route path="/contents"                   element={<ContentsPage />} />
-        <Route path="/chapters"                   element={<ChaptersPage />} />
+        <Route path="/dedication" element={<DedicationPage />} />
+		<Route path="/chapters"                   element={<ChaptersPage />} />
         <Route path="/gallery"                    element={<GalleryPage />} />
         <Route path="/audio"                      element={<AudioPage />} />
         <Route path="/reader"                     element={<ReaderPage />} />
