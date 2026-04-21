@@ -88,7 +88,7 @@ export default function ChaptersPage() {
         background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
         border: '1px solid rgba(180,180,180,0.8)',
         borderRadius: '3px',
-        padding: '5px 2.5rem',
+        padding: '5px 0.8rem',
         marginTop: '0.5rem',
         marginBottom: '1.2rem',
         boxShadow: '0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5)',
@@ -134,7 +134,7 @@ export default function ChaptersPage() {
             onClick={() => handleChapterClick(ch.id)}
             style={{
               background: 'rgba(253,248,240,0.85)',
-              borderRadius: '3px',
+              borderRadius: '20px',
               padding: '6px 1.2rem',
               cursor: 'pointer',
               display: 'flex',
