@@ -8,21 +8,21 @@ export default function DedicationPage() {
 
   const displayText = dedication && dedication.trim()
     ? dedication
-    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
+    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`;
 
-return (
-<div style={{
-  width: '100%',
-  minHeight: '100vh',
-  backgroundImage: "url('/leather_border.png')",
-  backgroundSize: '100% 100%',
-  backgroundPosition: 'center',
-  display: 'flex',
-  alignItems: 'flex-start', // Change from 'center' to 'flex-start'
-  justifyContent: 'center',
-  padding: '10vh 2vw 0',   // 10vh at the top, 2vw sides, 0 bottom
-  boxSizing: 'border-box',
-}}>
+  return (
+    <div style={{
+      width: '100%',
+      minHeight: '100vh',
+      backgroundImage: "url('/leather_border.png')",
+      backgroundSize: '100% 100%',
+      backgroundPosition: 'center',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      padding: '6vh 2vw 0',   // Adjusted from 10vh to 4vh to move the book up
+      boxSizing: 'border-box',
+    }}>
 
       {/* OPEN BOOK */}
       <div style={{
