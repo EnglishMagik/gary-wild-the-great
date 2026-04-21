@@ -10,19 +10,18 @@ export default function DedicationPage() {
     ? dedication
     : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
 
-  return (
-    <div style={{
-      width: '100%',
-      minHeight: '100vh',
-   backgroundImage: "url('/leather_border.png')",
-backgroundSize: '100% 100%',
-backgroundPosition: 'center',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '0 2vw',
-      boxSizing: 'border-box',
-    }}>
+<div style={{
+  width: '100%',
+  minHeight: '100vh',
+  backgroundImage: "url('/leather_border.png')",
+  backgroundSize: '100% 100%',
+  backgroundPosition: 'center',
+  display: 'flex',
+  alignItems: 'flex-start', // Change from 'center' to 'flex-start'
+  justifyContent: 'center',
+  padding: '10vh 2vw 0',   // 10vh at the top, 2vw sides, 0 bottom
+  boxSizing: 'border-box',
+}}>
 
       {/* OPEN BOOK */}
       <div style={{
