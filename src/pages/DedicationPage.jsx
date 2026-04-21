@@ -20,14 +20,14 @@ export default function DedicationPage() {
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '0 2vw', // Keeping sides clear, but top at 0
+      padding: '0 2vw', // Keeping sides clear
       boxSizing: 'border-box',
     }}>
 
       {/* OPEN BOOK */}
       <div style={{
         position: 'relative',
-        marginTop: '12vh', // <--- CHANGE THIS TO MOVE DOWN (15vh) OR UP (10vh)
+        marginTop: '15vh', // <--- This is the "Wee Nudge" (Changed from 12vh)
         width: 'min(75vw, calc(65vh * 1025 / 571))',
         aspectRatio: '1025 / 571',
       }}>
