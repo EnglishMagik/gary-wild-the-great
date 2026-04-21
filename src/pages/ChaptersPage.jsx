@@ -9,21 +9,6 @@ export default function ChaptersPage() {
   const getFlatPages = useBookStore((s) => s.getFlatPages)
   const keyRef = useRef(null)
 
-  // Shimmer animation on the key
-  useEffect(() => {
-    const el = keyRef.current
-    if (!el) return
-    let forward = true
-    let val = 1
-    const interval = setInterval(() => {
-      val = forward ? val + 0.03 : val - 0.03
-      if (val >= 1.18) forward = false
-      if (val <= 1.0) forward = true
-      el.style.filter = `drop-shadow(0 4px 18px rgba(0,0,0,0.6)) brightness(${val})`
-    }, 40)
-    return () => clearInterval(interval)
-  }, [])
-
   const handleChapterClick = (chapterId) => {
     const allPages = getFlatPages()
     const firstPageIndex = allPages.findIndex((p) => p.chapterId === chapterId)
@@ -48,7 +33,21 @@ export default function ChaptersPage() {
       boxSizing: 'border-box',
     }}>
 
-      {/* KEY — radial spotlight, shimmer, no rectangle */}
+      <style>{`
+        @keyframes keyGlow {
+          0%   { filter: drop-shadow(0 0 4px rgba(255,220,100,0)) brightness(1); }
+          50%  { filter: drop-shadow(0 0 18px rgba(255,220,100,0.9)) drop-shadow(0 0 35px rgba(255,180,50,0.6)) brightness(1.25); }
+          100% { filter: drop-shadow(0 0 4px rgba(255,220,100,0)) brightness(1); }
+        }
+
+        @keyframes titleFlow {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+
+      {/* KEY — glowing, no rectangle */}
       <div style={{
         position: 'relative',
         display: 'flex',
@@ -56,13 +55,12 @@ export default function ChaptersPage() {
         justifyContent: 'center',
         marginBottom: '0.5rem',
       }}>
-        {/* Radial spotlight behind key */}
         <div style={{
           position: 'absolute',
           width: '200px',
           height: '100px',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 50%, transparent 75%)',
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, transparent 75%)',
           pointerEvents: 'none',
         }} />
         <img
@@ -76,18 +74,24 @@ export default function ChaptersPage() {
             cursor: 'pointer',
             position: 'relative',
             zIndex: 1,
+            mixBlendMode: 'multiply',
+            animation: 'keyGlow 3s ease-in-out infinite',
             transition: 'transform 0.2s',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.12)'}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         />
       </div>
 
-      {/* TITLE — silver/pewter plaque */}
+      {/* TITLE — living liquid metal */}
       <div style={{
-        background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
-        border: '1px solid rgba(180,180,180,0.8)',
-        borderRadius: '3px',
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'linear-gradient(270deg, #aaa, #e8e8e8, #fff, #c0c0c0, #888, #e0e0e0, #aaa)',
+        backgroundSize: '400% 400%',
+        animation: 'titleFlow 4s ease infinite',
+        border: '1px solid rgba(180,180,180,0.6)',
+        borderRadius: '20px',
         padding: '5px 0.8rem',
         marginTop: '0.5rem',
         marginBottom: '1.2rem',
@@ -100,7 +104,9 @@ export default function ChaptersPage() {
           letterSpacing: '0.2em',
           margin: 0,
           padding: 0,
-          textShadow: '0 1px 0 rgba(255,255,255,0.6)',
+          textShadow: '0 1px 0 rgba(255,255,255,0.7)',
+          position: 'relative',
+          zIndex: 1,
         }}>
           LIFE CHAPTERS
         </h1>
@@ -134,7 +140,7 @@ export default function ChaptersPage() {
             onClick={() => handleChapterClick(ch.id)}
             style={{
               background: 'rgba(253,248,240,0.85)',
-              borderRadius: '20px',
+              borderRadius: '3px',
               padding: '6px 1.2rem',
               cursor: 'pointer',
               display: 'flex',
