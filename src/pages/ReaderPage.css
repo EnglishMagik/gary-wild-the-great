@@ -1,0 +1,170 @@
+.reader-screen {
+  min-height: 100vh;
+  background: #2a1f0d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--nav-height) + 1.5rem) 1rem 4rem;
+}
+
+.book-container {
+  width: 100%;
+  max-width: 860px;
+}
+
+.book-spread {
+  display: flex;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.18);
+  min-height: 580px;
+}
+
+.book-spine {
+  width: 22px;
+  background: linear-gradient(180deg, var(--spine), #0a0700, var(--spine));
+  border-right: 2px solid var(--gold-dark);
+  flex-shrink: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.book-page-content {
+  flex: 1;
+  background: var(--parchment);
+  padding: 3rem 3.5rem;
+  position: relative;
+  min-height: 580px;
+}
+
+.book-page-content::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 28px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.07), transparent);
+  pointer-events: none;
+}
+
+.edit-page-btn {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.3);
+  color: var(--gold-dark);
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.edit-page-btn:hover { background: var(--gold); color: var(--deep); }
+
+.page-header-ornament {
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--gold-dark);
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.5em;
+}
+
+.page-chapter-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  color: var(--gold-dark);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.page-chapter-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-style: italic;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gold-dark);
+}
+
+.page-text {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--ink);
+  text-align: justify;
+  hyphens: auto;
+}
+
+.page-text p {
+  margin-bottom: 1.2em;
+  text-indent: 2em;
+}
+
+.page-text p:first-child {
+  text-indent: 0;
+}
+
+.page-text p:first-child::first-letter {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.4em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.1em;
+  color: var(--red-accent);
+  font-weight: 700;
+}
+
+.empty-page-hint {
+  font-style: italic;
+  color: rgba(26,18,8,0.35);
+  text-align: center;
+  text-indent: 0 !important;
+}
+
+.page-media-item {
+  margin: 1.5rem 0;
+}
+
+.page-number-footer {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--gold-dark);
+  letter-spacing: 0.2em;
+}
+
+.book-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.turn-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold);
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.turn-btn:hover:not(:disabled) { background: var(--gold); color: var(--deep); }
+.turn-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+.page-counter {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  color: rgba(201,168,76,0.65);
+}
+
+@media (max-width: 600px) {
+  .book-page-content { padding: 2rem 1.25rem; }
+  .page-chapter-title { font-size: 1.35rem; }
+}

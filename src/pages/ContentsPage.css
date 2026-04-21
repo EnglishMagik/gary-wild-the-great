@@ -1,0 +1,67 @@
+.portals-page {
+  width: 100%;
+  min-height: 100vh;
+  background-image: url('/leathers.png');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.portals-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4vw;
+  padding: 4vw;
+  width: 100%;
+}
+
+.portal-circle {
+  width: 24vw;
+  height: 24vw;
+  max-width: 280px;
+  max-height: 280px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 0 0 4px rgba(201,168,76,0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  gap: 0.5rem;
+}
+
+.portal-circle:hover {
+  transform: scale(1.06);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 0 0 4px rgba(201,168,76,0.7);
+}
+
+.portal-icon {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+
+.portal-label {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.75rem, 1.5vw, 1.1rem);
+  font-weight: 700;
+  color: #1a1208;
+  text-align: center;
+  letter-spacing: 0.08em;
+  padding: 0 1rem;
+}
+
+.portal-desc {
+  font-family: 'Crimson Text', serif;
+  font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+  color: rgba(26,18,8,0.6);
+  font-style: italic;
+  text-align: center;
+  padding: 0 1rem;
+}

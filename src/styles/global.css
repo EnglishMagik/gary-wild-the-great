@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;700;900&display=swap');
+
+/* =====================
+   ROOT VARIABLES
+===================== */
+:root {
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dark: #8b6914;
+
+  --deep: #0d0a06;
+  --parchment: #f5ead6;
+  --parchment-dark: #e8d5b7;
+  --ink: #1a1208;
+
+  --spine: #1a1208;
+
+  --nav-height: 45px;
+}
+
+/* =====================
+   GLOBAL RESET (ONLY ONCE)
+===================== */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--deep);
+  overflow-x: hidden;
+}
+
+/* =====================
+   GLOBAL ELEMENTS
+===================== */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* =====================
+   APP WRAPPER
+===================== */
+.contents-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
