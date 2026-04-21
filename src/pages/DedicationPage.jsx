@@ -8,7 +8,7 @@ export default function DedicationPage() {
 
   const displayText = dedication && dedication.trim()
     ? dedication
-    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`;
+    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nThis life is yours — make it meaningful.`
 
   return (
     <div style={{
@@ -16,92 +16,27 @@ export default function DedicationPage() {
       minHeight: '100vh',
       backgroundImage: "url('/leather_border.png')",
       backgroundSize: '100% 100%',
-      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
       display: 'flex',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'center',
-      padding: '0 2vw', // Keeping sides clear
       boxSizing: 'border-box',
     }}>
 
-      {/* OPEN BOOK */}
+      {/* CONTENT AREA — sits inside the frame's white/light centre */}
       <div style={{
-        position: 'relative',
-        marginTop: '13.5vh', // <--- This is the "Wee Nudge" (Changed from 12vh)
-        width: 'min(70vw, calc(60vh * 1025 / 571))',
-        aspectRatio: '1025 / 571',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '62vw',
+        gap: '4vw',
+        marginTop: '2vh',
       }}>
-        <img
-          src="/book_pages.png"
-          alt="Book"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'fill',
-            display: 'block',
-            pointerEvents: 'none',
-          }}
-        />
 
-        {/* LEFT PAGE — photo, slightly smaller and shifted right */}
+        {/* LEFT HALF — dedication text */}
         <div style={{
-          position: 'absolute',
-          top: '8%',
-          left: '16%',       
-          width: '28%',      
-          bottom: '8%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.75rem',
-        }}>
-          {/* GOLD FRAME */}
-          <div style={{
-            width: '100%',
-            padding: '6px',
-            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
-            borderRadius: '6px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-          }}>
-            <div style={{
-              padding: '4px',
-              background: '#f5ead6',
-              borderRadius: '3px',
-            }}>
-              <img
-                src="/Magicat.jpg"
-                alt="Making Life Magic"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  borderRadius: '2px',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* CAPTION */}
-          <div style={{
-            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontSize: 'clamp(0.65rem, 1.2vw, 1rem)',
-            color: '#2a1a08',
-            textAlign: 'center',
-          }}>
-            Making Life Magic
-          </div>
-        </div>
-
-        {/* RIGHT PAGE — dedication text */}
-        <div style={{
-          position: 'absolute',
-          top: '8%',
-          left: '56%',
-          width: '33%',
-          bottom: '8%',
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -124,12 +59,11 @@ export default function DedicationPage() {
             background: 'rgba(90,58,24,0.35)',
           }} />
 
-          {/* DEDICATION TEXT */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+            fontSize: 'clamp(0.8rem, 1.4vw, 1.1rem)',
             color: '#3a2010',
             textAlign: 'center',
             lineHeight: 2,
@@ -182,7 +116,6 @@ export default function DedicationPage() {
               color: 'rgba(90,58,24,0.35)',
               cursor: 'pointer',
               transition: 'color 0.2s',
-              marginTop: '0.25rem',
             }}
             onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.8)'}
             onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.35)'}
@@ -190,6 +123,54 @@ export default function DedicationPage() {
             ← COVER
           </div>
         </div>
+
+        {/* RIGHT HALF — photo in gold frame */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.75rem',
+        }}>
+          {/* GOLD FRAME */}
+          <div style={{
+            width: '85%',
+            padding: '7px',
+            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
+            borderRadius: '6px',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
+          }}>
+            <div style={{
+              padding: '5px',
+              background: '#f5ead6',
+              borderRadius: '3px',
+            }}>
+              <img
+                src="/Magicat.jpg"
+                alt="Making Life Magic"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  borderRadius: '2px',
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{
+            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+            color: '#2a1a08',
+            textAlign: 'center',
+          }}>
+            Making Life Magic
+          </div>
+        </div>
+
       </div>
     </div>
   )
