@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-data'
+import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
 
 export default function DedicationPage() {
