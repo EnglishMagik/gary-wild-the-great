@@ -194,3 +194,37 @@ export default function StudioPage() {
           <input
             placeholder="New Chapter Name..."
             value={newTitle}
+            onChange={(e) => { setNewTitle(e.target.value); setSelectedId(''); }}
+            style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#222', color: '#fff', border: '1px solid #444', boxSizing: 'border-box' }}
+          />
+          <div style={{ display: 'flex', gap: '5px' }}>
+            <select
+              value={selectedId}
+              onChange={(e) => { setSelectedId(e.target.value); setNewTitle(''); }}
+              style={{ flex: 1, padding: '10px', background: '#222', color: '#fff' }}
+            >
+              <option value="">-- Add to / Select Chapter --</option>
+              {chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.title}</option>)}
+            </select>
+            {selectedId && (
+              <button onClick={handleDelete} style={{ background: '#441111', color: '#ff4d4d', border: '1px solid #ff4d4d', padding: '0 15px', borderRadius: '4px', cursor: 'pointer' }}>🗑️</button>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={handleSave}
+          style={{
+            width: '100%', padding: '16px', background: '#d4af37', color: '#000',
+            fontWeight: 'bold', border: 'none', fontSize: '18px', borderRadius: '4px',
+            cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          SAVE TO BOOK
+        </button>
+
+        {status && <p style={{ textAlign: 'center', color: '#d4af37', margin: '5px 0', flexShrink: 0 }}>{status}</p>}
+      </main>
+    </div>
+  );
+}
