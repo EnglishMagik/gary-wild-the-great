@@ -14,9 +14,9 @@ export default function DedicationPage() {
     <div style={{
       width: '100%',
       minHeight: '100vh',
-      backgroundImage: "url('/leathers.png')",
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
+   backgroundImage: "url('/leather_border.png')",
+backgroundSize: '100% 100%',
+backgroundPosition: 'center',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
