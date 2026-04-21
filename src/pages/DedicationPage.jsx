@@ -37,16 +37,17 @@ export default function DedicationPage() {
       }}>
 
         {/* LEFT — IMAGE PERFECTLY INSIDE FRAME */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',   // 🔥 THIS moves it left
+        justifyContent: 'center',
+		paddingLeft: '2vw',
         }}>
 
           <div style={{
-            width: '70%',
+            width: '80%',
             aspectRatio: '1 / 1',
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
