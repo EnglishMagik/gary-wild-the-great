@@ -20,41 +20,48 @@ export default function DedicationPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2rem',
+      padding: '2vh 2vw',
       boxSizing: 'border-box',
     }}>
+
+      {/* OPEN BOOK — same proportions as reader */}
       <div style={{
         position: 'relative',
-        width: 'min(90vw, 500px)',
-        height: 'min(90vh, 700px)',
-        backgroundImage: "url('/Single_page.png')",
-        backgroundSize: '100% 100%',
-        backgroundRepeat: 'no-repeat',
-        borderRadius: '8px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+        width: 'min(96vw, calc(96vh * 1025 / 571))',
+        aspectRatio: '1025 / 571',
       }}>
+        <img
+          src="/book_pages.png"
+          alt="Book"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'fill',
+            display: 'block',
+            pointerEvents: 'none',
+          }}
+        />
 
-        {/* INNER CONTENT */}
+        {/* LEFT PAGE — photo in gold frame */}
         <div style={{
           position: 'absolute',
           top: '8%',
-          left: '15%',
-          right: '15%',
-          bottom: '10%',
+          left: '11%',
+          width: '33%',
+          bottom: '8%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '1rem',
+          gap: '0.75rem',
         }}>
-
-          {/* IMAGE IN FRAME */}
+          {/* GOLD FRAME */}
           <div style={{
             width: '100%',
             padding: '6px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914, #c9a84c)',
             borderRadius: '6px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           }}>
             <div style={{
               padding: '4px',
@@ -74,17 +81,41 @@ export default function DedicationPage() {
             </div>
           </div>
 
-          {/* CAPTION */}
+          {/* CAPTION UNDER IMAGE */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
+            fontSize: 'clamp(0.65rem, 1.2vw, 1rem)',
             color: '#2a1a08',
             textAlign: 'center',
-            lineHeight: 1.3,
           }}>
             Making Life Magic
+          </div>
+        </div>
+
+        {/* RIGHT PAGE — dedication text */}
+        <div style={{
+          position: 'absolute',
+          top: '8%',
+          left: '56%',
+          width: '33%',
+          bottom: '8%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+        }}>
+          {/* ORNAMENT */}
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: 'clamp(0.5rem, 0.8vw, 0.7rem)',
+            color: '#8b6914',
+            letterSpacing: '0.3em',
+            textAlign: 'center',
+          }}>
+            ✦ ✦ ✦
           </div>
 
           {/* DIVIDER */}
@@ -98,14 +129,21 @@ export default function DedicationPage() {
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
-            fontSize: 'clamp(0.75rem, 1.5vw, 0.95rem)',
+            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
             color: '#3a2010',
             textAlign: 'center',
-            lineHeight: 1.9,
+            lineHeight: 2,
             whiteSpace: 'pre-line',
           }}>
             {displayText}
           </div>
+
+          {/* DIVIDER */}
+          <div style={{
+            width: '60%',
+            height: '1px',
+            background: 'rgba(90,58,24,0.35)',
+          }} />
 
           {/* ENTER BUTTON */}
           <button
@@ -117,7 +155,7 @@ export default function DedicationPage() {
               borderRadius: '999px',
               padding: '0.4rem 2rem',
               fontFamily: 'Cinzel, serif',
-              fontSize: '0.75rem',
+              fontSize: 'clamp(0.55rem, 0.9vw, 0.75rem)',
               letterSpacing: '0.25em',
               color: '#2a2a2a',
               cursor: 'pointer',
@@ -136,28 +174,24 @@ export default function DedicationPage() {
             ENTER
           </button>
 
+          {/* SUBTLE BACK LINK */}
+          <div
+            onClick={() => navigate('/')}
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: 'clamp(0.45rem, 0.7vw, 0.6rem)',
+              letterSpacing: '0.15em',
+              color: 'rgba(90,58,24,0.35)',
+              cursor: 'pointer',
+              transition: 'color 0.2s',
+              marginTop: '0.25rem',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.8)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.35)'}
+          >
+            ← COVER
+          </div>
         </div>
-
-        {/* SUBTLE BACK LINK */}
-        <div
-          onClick={() => navigate('/')}
-          style={{
-            position: 'absolute',
-            bottom: '3%',
-            left: '8%',
-            fontFamily: 'Cinzel, serif',
-            fontSize: '0.55rem',
-            letterSpacing: '0.15em',
-            color: 'rgba(90,58,24,0.35)',
-            cursor: 'pointer',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.8)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(90,58,24,0.35)'}
-        >
-          ← COVER
-        </div>
-
       </div>
     </div>
   )
