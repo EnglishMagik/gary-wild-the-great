@@ -1,315 +1,329 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
-
-const CHARS_PER_PAGE = 600
-const CHARS_PER_PAGE_MOBILE = 400
-
-function buildPageSlots(chapters, charsPerPage) {
-  const slots = []
-  chapters.forEach((ch, chIndex) => {
-    const fullText = ch.pages.map(p => p.text).join('\n\n')
-    const paragraphs = fullText.split('\n').filter(p => p.trim())
-    let currentSlotParas = []
-    let currentLen = 0
-    let isFirstSlot = true
-
-    const flushSlot = () => {
-      if (currentSlotParas.length === 0) return
-      slots.push({
-        chapterId: ch.id,
-        chapterTitle: ch.title,
-        chapterNumber: chIndex + 1,
-        isFirstOfChapter: isFirstSlot,
-        paragraphs: [...currentSlotParas],
-      })
-      isFirstSlot = false
-      currentSlotParas = []
-      currentLen = 0
-    }
-
-    const charsForFirstSlot = charsPerPage - 200
-
-    paragraphs.forEach(para => {
-      const limit = isFirstSlot ? charsForFirstSlot : charsPerPage
-      if (currentLen + para.length > limit && currentSlotParas.length > 0) flushSlot()
-      currentSlotParas.push(para)
-      currentLen += para.length
-    })
-    flushSlot()
-  })
-  return slots
-}
+import { useNavigate } from 'react-router-dom'
 
 export default function ReaderPage() {
   const navigate = useNavigate()
-  const { currentPageIndex, setCurrentPage, chapters } = useBookStore()
-  
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight)
+  const {
+    currentPageIndex,
+    setCurrentPage,
+    getFlatPages,
+    updatePage,
+    deleteChapter,
+    deletePage,
+    updateChapterTitle,
+  } = useBookStore()
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-      setIsLandscape(window.innerWidth > window.innerHeight)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  const allPages = getFlatPages()
+  const currentPage = allPages[currentPageIndex]
 
-  // Mobile landscape uses desktop-style two-page spread
-  // Mobile portrait uses single scrollable page
-  const useMobilePortrait = isMobile && !isLandscape
-  const charsPerPage = useMobilePortrait ? CHARS_PER_PAGE_MOBILE : CHARS_PER_PAGE
-  const slots = buildPageSlots(chapters, charsPerPage)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editText, setEditText]   = useState('')
+  const [editTitle, setEditTitle] = useState('')
 
-  if (slots.length === 0) {
+  // Swipe support
+  const [touchStartX, setTouchStartX] = useState(null)
+
+  useEffect(() => { window.scrollTo(0, 0) }, [currentPageIndex])
+
+  if (!currentPage) {
     return (
       <div style={{
-        minHeight: '100vh', background: '#ffffff',
+        minHeight: '100vh', background: '#1a1208',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        color: '#8b6914', fontFamily: 'Cinzel, serif', gap: '2rem',
-        padding: '2rem',
+        padding: '40px 20px', textAlign: 'center'
       }}>
-        <p style={{ textAlign: 'center', fontSize: '1.1rem' }}>No pages yet.</p>
-        <button onClick={() => navigate('/studio')} style={{
-          background: '#c9a84c', color: '#1a1208', border: 'none',
-          padding: '0.75rem 2rem', fontFamily: 'Cinzel, serif',
-          cursor: 'pointer', fontSize: '0.9rem', borderRadius: '4px',
-        }}>GO TO WRITE</button>
-      </div>
-    )
-  }
-
-  const safeIndex = Math.min(currentPageIndex, slots.length - 1)
-  const pagesPerSpread = useMobilePortrait ? 1 : 2
-  const leftSlot = slots[safeIndex]
-  const rightSlot = !useMobilePortrait ? slots[safeIndex + 1] : null
-  const canGoNext = safeIndex + pagesPerSpread < slots.length
-  const canGoPrev = safeIndex > 0
-  const goNext = () => { if (canGoNext) setCurrentPage(safeIndex + pagesPerSpread) }
-  const goPrev = () => { if (canGoPrev) setCurrentPage(safeIndex - pagesPerSpread) }
-
-  const textFont = '"Bradley Hand ITC", "Bradley Hand", cursive'
-
-  // ── DESKTOP NAV BUTTON (small, hover-based) ──
-  const NavBtn = ({ onClick, disabled, label }) => (
-    <button onClick={onClick} disabled={disabled} style={{
-      background: disabled ? 'rgba(139,105,20,0.08)' : 'rgba(139,105,20,0.18)',
-      border: '1px solid rgba(139,105,20,0.35)',
-      borderRadius: '999px',
-      cursor: disabled ? 'default' : 'pointer',
-      opacity: disabled ? 0.3 : 1,
-      padding: '2px 10px',
-      transition: 'background 0.2s',
-      flexShrink: 0,
-    }}
-      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(139,105,20,0.32)' }}
-      onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(139,105,20,0.18)' }}
-    >
-      <span style={{
-        fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '700',
-        fontSize: 'clamp(0.45rem, 0.65vw, 0.55rem)', color: '#5a3a18',
-        letterSpacing: '0.1em', whiteSpace: 'nowrap',
-      }}>{label}</span>
-    </button>
-  )
-
-  // ── MOBILE TAP BUTTON (large, finger-friendly) ──
-  const MobileBtn = ({ onClick, disabled, label }) => (
-    <button onClick={onClick} disabled={disabled} style={{
-      background: disabled ? 'rgba(139,105,20,0.1)' : 'rgba(139,105,20,0.25)',
-      border: '2px solid rgba(139,105,20,0.5)',
-      borderRadius: '999px',
-      cursor: disabled ? 'default' : 'pointer',
-      opacity: disabled ? 0.3 : 1,
-      padding: '10px 24px',
-      fontFamily: 'Cinzel, serif',
-      fontStyle: 'italic',
-      fontWeight: '700',
-      fontSize: '0.9rem',
-      color: '#5a3a18',
-      letterSpacing: '0.1em',
-      minWidth: '90px',
-      touchAction: 'manipulation',
-    }}>
-      {label}
-    </button>
-  )
-
-  // ── DESKTOP SLOT RENDERER ──
-  const renderSlot = (slot, pageNum, isLeft) => {
-    if (!slot) return null
-    return (
-      <div style={{
-        position: 'absolute',
-        top: '5%', left: isLeft ? '11%' : '56%',
-        width: '33%', bottom: '4%', zIndex: 3,
-      }}>
-        <div style={{
-          position: 'absolute', bottom: '0.5rem',
-          left: isLeft ? 0 : 'auto', right: isLeft ? 'auto' : 0,
-          fontFamily: 'Cinzel, serif', fontStyle: 'italic',
-          fontSize: 'clamp(1.1rem, 1.6vw, 1.4rem)', color: '#5a3a18',
-          letterSpacing: '0.2em', fontWeight: 'bold', lineHeight: 1, zIndex: 4,
-        }}>
-          {pageNum}
-        </div>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          bottom: '3rem', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        }}>
-          {slot.isFirstOfChapter && (
-            <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0 }}>
-              {isLeft && (
-                <div style={{ textAlign: 'left', marginBottom: '0.3rem', marginTop: '1rem' }}>
-                  <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
-                </div>
-              )}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.1rem' }}>
-                <img src="/crown.png" alt="Life Chapters" onClick={() => navigate('/chapters')}
-                  style={{ width: '75px', height: 'auto', cursor: 'pointer', opacity: 0.9, flexShrink: 0 }} />
-                <div style={{ fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '900', fontSize: 'clamp(0.4rem, 0.65vw, 0.55rem)', color: '#5a3a18', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
-                  Chapter {slot.chapterNumber}
-                </div>
-              </div>
-              <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.85rem, 1.5vw, 1.2rem)', color: '#2a1a08', lineHeight: 1.15 }}>
-                {slot.chapterTitle}
-              </div>
-              <div style={{ width: '40%', height: '1px', background: 'rgba(90,58,24,0.4)', margin: '0.7rem auto 1rem auto' }} />
-            </div>
-          )}
-          {!slot.isFirstOfChapter && (
-            <div style={{ display: 'flex', alignItems: 'center', paddingTop: '2rem', marginBottom: '0.5rem', flexShrink: 0 }}>
-              {isLeft && <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />}
-              <div style={{ fontFamily: textFont, fontStyle: 'italic', fontSize: 'clamp(0.4rem, 0.6vw, 0.55rem)', color: '#5a3a18', flex: 1, textAlign: 'center', padding: '0 0.25rem' }}>
-                {slot.chapterTitle}
-              </div>
-              {!isLeft && <NavBtn onClick={goNext} disabled={!canGoNext} label="Next" />}
-            </div>
-          )}
-          <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.72rem, 1.15vw, 0.98rem)', color: '#2a1a08', lineHeight: 1.78, overflow: 'hidden', flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-            {slot.paragraphs.map((para, i) => (
-              <p key={i} style={{ marginBottom: '0.75rem', marginTop: 0 }}>{para}</p>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ── DESKTOP RENDER (includes mobile landscape) ──
-  const renderDesktop = () => (
-    <div style={{
-      width: '100%', height: '100vh',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#ffffff', padding: '2vh 2vw', boxSizing: 'border-box',
-    }}>
-      <div style={{
-        position: 'relative',
-        width: 'min(96vw, calc(96vh * 1025 / 571))',
-        aspectRatio: '1025 / 571',
-      }}>
-        <img src="/book_pages.png" alt="Book pages" style={{
-          width: '100%', height: '100%', objectFit: 'fill',
-          display: 'block', pointerEvents: 'none',
-        }} />
-        {renderSlot(leftSlot, safeIndex + 1, true)}
-        {rightSlot && renderSlot(rightSlot, safeIndex + 2, false)}
-      </div>
-    </div>
-  )
-
-  // ── MOBILE PORTRAIT RENDER — clean scrollable parchment ──
-  const renderMobilePortrait = () => (
-    <div style={{
-      width: '100%',
-      minHeight: '100vh',
-      background: '#f5ead6',
-      display: 'flex',
-      flexDirection: 'column',
-      boxSizing: 'border-box',
-    }}>
-      {/* PARCHMENT PAGE */}
-      <div style={{
-        flex: 1,
-        margin: '1rem',
-        background: '#fffcf0',
-        border: '1px solid rgba(139,105,20,0.3)',
-        borderRadius: '8px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        padding: '1.5rem 1.25rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-      }}>
-
-        {/* CHAPTER HEADER */}
-        {leftSlot?.isFirstOfChapter && (
-          <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(139,105,20,0.3)', paddingBottom: '1rem' }}>
-            <img src="/crown.png" alt="crown" onClick={() => navigate('/chapters')}
-              style={{ width: '50px', height: 'auto', cursor: 'pointer', opacity: 0.9, marginBottom: '0.5rem' }} />
-            <div style={{ fontFamily: 'Cinzel, serif', fontSize: '0.7rem', color: '#8b6914', letterSpacing: '0.3em', marginBottom: '0.3rem' }}>
-              CHAPTER {leftSlot.chapterNumber}
-            </div>
-            <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: '1.4rem', color: '#2a1a08', lineHeight: 1.2 }}>
-              {leftSlot.chapterTitle}
-            </div>
-          </div>
-        )}
-
-        {/* NON-CHAPTER HEADER */}
-        {!leftSlot?.isFirstOfChapter && (
-          <div style={{ textAlign: 'center', fontFamily: textFont, fontStyle: 'italic', fontSize: '0.85rem', color: '#8b6914', borderBottom: '1px solid rgba(139,105,20,0.2)', paddingBottom: '0.5rem' }}>
-            {leftSlot?.chapterTitle}
-          </div>
-        )}
-
-        {/* PAGE TEXT — large and readable */}
-        <div style={{
-          fontFamily: textFont,
-          fontStyle: 'italic',
-          fontWeight: 'bold',
-          fontSize: '1.1rem',
-          color: '#2a1a08',
-          lineHeight: 1.9,
-          flex: 1,
-        }}>
-          {leftSlot?.paragraphs.map((para, i) => (
-            <p key={i} style={{ marginBottom: '1rem', marginTop: 0 }}>{para}</p>
-          ))}
-        </div>
-
-        {/* PAGE NUMBER */}
-        <div style={{ textAlign: 'center', fontFamily: 'Cinzel, serif', fontSize: '0.9rem', color: '#8b6914', letterSpacing: '0.2em' }}>
-          — {safeIndex + 1} —
-        </div>
-      </div>
-
-      {/* NAVIGATION — large tap targets at bottom */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.75rem 1rem 1.25rem',
-        background: '#f5ead6',
-      }}>
-        <MobileBtn onClick={goPrev} disabled={!canGoPrev} label="← Prev" />
-        <div
-          onClick={() => navigate('/chapters')}
-          style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', color: '#8b6914', letterSpacing: '0.15em', cursor: 'pointer', textAlign: 'center' }}
+        <p style={{ color: '#c9a84c', fontFamily: 'Cinzel, serif', fontSize: '1.1rem', marginBottom: '24px' }}>
+          The book is empty. Head to the Studio to begin writing.
+        </p>
+        <button
+          onClick={() => navigate('/studio')}
+          style={{
+            padding: '14px 32px', background: '#c9a84c', color: '#1a1208',
+            border: 'none', fontFamily: 'Cinzel, serif', fontSize: '0.9rem',
+            fontWeight: '700', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: '4px'
+          }}
         >
-          CONTENTS
-        </div>
-        <MobileBtn onClick={goNext} disabled={!canGoNext} label="Next →" />
+          GO TO STUDIO
+        </button>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            marginTop: '12px', background: 'none', border: 'none',
+            color: 'rgba(201,168,76,0.5)', fontFamily: 'Cinzel, serif',
+            fontSize: '0.75rem', cursor: 'pointer', letterSpacing: '0.15em'
+          }}
+        >
+          ← BACK TO COVER
+        </button>
       </div>
-    </div>
-  )
+    )
+  }
+
+  const isFirstPageOfChapter =
+    currentPageIndex === 0 ||
+    allPages[currentPageIndex - 1].chapterId !== currentPage.chapterId
+
+  const startEdit = () => {
+    setEditText(currentPage.text)
+    setEditTitle(currentPage.chapterTitle)
+    setIsEditing(true)
+  }
+
+  const handleSaveEdit = () => {
+    updatePage(currentPage.chapterId, currentPage.id, editText)
+    if (isFirstPageOfChapter && updateChapterTitle) {
+      updateChapterTitle(currentPage.chapterId, editTitle)
+    }
+    setIsEditing(false)
+  }
+
+  const handleDeletePage = () => {
+    const chapters = useBookStore.getState().chapters
+    const parentChapter = chapters.find(ch => ch.id === currentPage.chapterId)
+    if (parentChapter && parentChapter.pages.length > 1) {
+      if (window.confirm('Delete ONLY this page?')) {
+        deletePage(currentPage.chapterId, currentPage.id)
+        setIsEditing(false)
+      }
+    } else {
+      if (window.confirm('This is the last page. Delete the entire chapter?')) {
+        deleteChapter(currentPage.chapterId)
+        navigate('/contents')
+      }
+    }
+  }
+
+  const goNext = () => {
+    if (currentPageIndex < allPages.length - 1) setCurrentPage(currentPageIndex + 1)
+  }
+  const goPrev = () => {
+    if (currentPageIndex > 0) setCurrentPage(currentPageIndex - 1)
+  }
+
+  const handleTouchStart = (e) => setTouchStartX(e.touches[0].clientX)
+  const handleTouchEnd = (e) => {
+    if (touchStartX === null) return
+    const diff = touchStartX - e.changedTouches[0].clientX
+    if (Math.abs(diff) > 50) { diff > 0 ? goNext() : goPrev() }
+    setTouchStartX(null)
+  }
+
+  /* ── PARAGRAPH RENDERER ── */
+  const renderText = (text) =>
+    text.split('\n').filter(p => p.trim()).map((para, i) => (
+      <p key={i} style={{
+        margin: '0 0 1.4em 0',
+        textIndent: i === 0 ? '0' : '2em',
+        lineHeight: '1.9',
+        fontSize: 'clamp(1rem, 2.8vw, 1.15rem)',
+        fontFamily: "'Crimson Text', serif",
+        color: '#1a1208',
+        textAlign: 'justify',
+        hyphens: 'auto',
+      }}>
+        {para}
+      </p>
+    ))
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#ffffff', overflow: useMobilePortrait ? 'auto' : 'hidden' }}>
-      {useMobilePortrait ? renderMobilePortrait() : renderDesktop()}
+    <div
+      style={{ minHeight: '100vh', background: '#2a1f0d' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* ── TOP BAR ── */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        background: 'rgba(26,18,8,0.95)',
+        borderBottom: '1px solid rgba(201,168,76,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', height: '52px',
+      }}>
+        <button
+          onClick={() => navigate('/contents')}
+          style={{
+            background: 'none', border: 'none', color: '#c9a84c',
+            fontFamily: 'Cinzel, serif', fontSize: '0.72rem',
+            letterSpacing: '0.15em', cursor: 'pointer', padding: '8px 4px'
+          }}
+        >
+          ← CONTENTS
+        </button>
+
+        <span style={{
+          fontFamily: 'Cinzel, serif', fontSize: '0.68rem',
+          color: 'rgba(201,168,76,0.5)', letterSpacing: '0.2em'
+        }}>
+          {currentPageIndex + 1} / {allPages.length}
+        </span>
+
+        {!isEditing ? (
+          <button
+            onClick={startEdit}
+            style={{
+              background: 'none', border: '1px solid rgba(201,168,76,0.3)',
+              color: 'rgba(201,168,76,0.6)', fontFamily: 'Cinzel, serif',
+              fontSize: '0.68rem', letterSpacing: '0.1em',
+              padding: '6px 10px', cursor: 'pointer', borderRadius: '3px'
+            }}
+          >
+            EDIT
+          </button>
+        ) : (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleSaveEdit} style={{ padding: '6px 12px', background: '#2ecc71', color: '#fff', border: 'none', borderRadius: '3px', fontSize: '0.75rem', cursor: 'pointer' }}>SAVE</button>
+            <button onClick={handleDeletePage} style={{ padding: '6px 12px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '3px', fontSize: '0.75rem', cursor: 'pointer' }}>DEL</button>
+            <button onClick={() => setIsEditing(false)} style={{ padding: '6px 12px', background: '#555', color: '#fff', border: 'none', borderRadius: '3px', fontSize: '0.75rem', cursor: 'pointer' }}>✕</button>
+          </div>
+        )}
+      </div>
+
+      {/* ── PAGE CONTENT ── */}
+      <div style={{
+        paddingTop: '68px', paddingBottom: '100px',
+        maxWidth: '680px', margin: '0 auto',
+        padding: '68px 20px 100px',
+      }}>
+        {/* Spine accent bar */}
+        <div style={{
+          width: '3px', height: '40px',
+          background: 'linear-gradient(180deg, #c9a84c, transparent)',
+          margin: '0 auto 24px',
+          borderRadius: '2px',
+        }} />
+
+        {isEditing ? (
+          <div style={{ background: '#f5ead6', padding: '24px', borderRadius: '4px' }}>
+            {isFirstPageOfChapter && (
+              <input
+                type="text"
+                value={editTitle}
+                onChange={e => setEditTitle(e.target.value)}
+                style={{
+                  width: '100%', marginBottom: '16px', padding: '10px',
+                  fontSize: '1.3rem', textAlign: 'center',
+                  fontFamily: 'Playfair Display, serif',
+                  border: '1px solid #c9a84c', background: 'white',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Chapter Title"
+              />
+            )}
+            <textarea
+              value={editText}
+              onChange={e => setEditText(e.target.value)}
+              style={{
+                width: '100%', minHeight: '60vh',
+                border: '1px solid #c9a84c', padding: '12px',
+                fontSize: '1rem', fontFamily: "'Crimson Text', serif",
+                lineHeight: '1.8', background: 'white', boxSizing: 'border-box',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+        ) : (
+          <div style={{
+            background: '#f5ead6',
+            padding: 'clamp(24px, 6vw, 56px) clamp(20px, 6vw, 48px)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.6), inset 4px 0 8px rgba(0,0,0,0.05)',
+            minHeight: '70vh',
+            position: 'relative',
+          }}>
+            {/* Chapter label + title */}
+            {isFirstPageOfChapter && (
+              <>
+                <div style={{
+                  fontFamily: 'Cinzel, serif', fontSize: '0.68rem',
+                  letterSpacing: '0.3em', color: '#8b6914',
+                  textAlign: 'center', textTransform: 'uppercase', marginBottom: '6px'
+                }}>
+                  Chapter {allPages.slice(0, currentPageIndex + 1).filter((p, idx) =>
+                    idx === 0 || allPages[idx - 1].chapterId !== p.chapterId
+                  ).length}
+                </div>
+                <h1 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 'clamp(1.4rem, 5vw, 2rem)',
+                  fontStyle: 'italic',
+                  color: '#1a1208',
+                  textAlign: 'center',
+                  marginBottom: '2rem',
+                  paddingBottom: '1.5rem',
+                  borderBottom: '1px solid #8b6914',
+                }}>
+                  {currentPage.chapterTitle}
+                </h1>
+              </>
+            )}
+
+            {/* Drop cap + paragraphs */}
+            <div>
+              {currentPage.text
+                ? renderText(currentPage.text)
+                : <p style={{ fontStyle: 'italic', color: 'rgba(26,18,8,0.3)', textAlign: 'center' }}>This page is empty.</p>
+              }
+            </div>
+
+            {/* Page number */}
+            <div style={{
+              textAlign: 'center', fontFamily: 'Cinzel, serif',
+              fontSize: '0.7rem', color: '#8b6914',
+              marginTop: '2.5rem', letterSpacing: '0.2em'
+            }}>
+              — {currentPageIndex + 1} —
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── BOTTOM NAV ── */}
+      {!isEditing && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+          background: 'rgba(13,10,6,0.96)',
+          borderTop: '1px solid rgba(201,168,76,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 24px', height: '64px',
+        }}>
+          <button
+            onClick={goPrev}
+            disabled={currentPageIndex === 0}
+            style={{
+              background: 'none',
+              border: '1px solid rgba(201,168,76,0.4)',
+              color: currentPageIndex === 0 ? 'rgba(201,168,76,0.2)' : '#c9a84c',
+              fontFamily: 'Cinzel, serif', fontSize: '1.2rem',
+              width: '52px', height: '44px', cursor: currentPageIndex === 0 ? 'default' : 'pointer',
+              borderRadius: '4px',
+            }}
+          >
+            ←
+          </button>
+
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', color: 'rgba(201,168,76,0.4)', letterSpacing: '0.2em' }}>
+              {currentPage.chapterTitle}
+            </div>
+          </div>
+
+          <button
+            onClick={goNext}
+            disabled={currentPageIndex === allPages.length - 1}
+            style={{
+              background: 'none',
+              border: '1px solid rgba(201,168,76,0.4)',
+              color: currentPageIndex === allPages.length - 1 ? 'rgba(201,168,76,0.2)' : '#c9a84c',
+              fontFamily: 'Cinzel, serif', fontSize: '1.2rem',
+              width: '52px', height: '44px', cursor: currentPageIndex === allPages.length - 1 ? 'default' : 'pointer',
+              borderRadius: '4px',
+            }}
+          >
+            →
+          </button>
+        </div>
+      )}
     </div>
   )
 }
