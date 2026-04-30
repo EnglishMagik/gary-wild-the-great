@@ -6,9 +6,10 @@ export default function DedicationPage() {
   const navigate = useNavigate()
   const dedication = useBookStore((s) => s.dedication)
 
-  const displayText = dedication && dedication.trim()
-    ? dedication
-    : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
+  const displayText =
+    dedication && dedication.trim()
+      ? dedication
+      : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
   const PAD = '5vw'
 
@@ -39,11 +40,13 @@ export default function DedicationPage() {
 
         {/* LEFT — IMAGE */}
         <div style={{
-          width: '40%',
-          flex: '0 0 auto',
+          flex: '0 0 340px',
+          maxWidth: '340px',
+          minWidth: '280px',
+          overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',   // FIXED (was flex-start)
+          alignItems: 'center',
           justifyContent: 'center',
         }}>
 
@@ -56,6 +59,7 @@ export default function DedicationPage() {
             borderRadius: '6px',
             boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
             boxSizing: 'border-box',
+            overflow: 'hidden',
           }}>
             <div style={{
               width: '100%',
@@ -64,6 +68,7 @@ export default function DedicationPage() {
               background: '#f5ead6',
               borderRadius: '4px',
               boxSizing: 'border-box',
+              overflow: 'hidden',
             }}>
               <img
                 src="/Magicat.jpg"
@@ -90,6 +95,7 @@ export default function DedicationPage() {
           }}>
             Making Life Magic
           </div>
+
         </div>
 
         {/* RIGHT — TEXT */}
