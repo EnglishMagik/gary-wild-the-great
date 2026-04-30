@@ -12,19 +12,14 @@ export default function StudioPage() {
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter = useBookStore((s) => s.deleteChapter);
   
-  // Refs for PC Logic
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
-
-  // Refs for Mobile Logic (Record then Transcribe)
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  // Detect if user is on Mobile
   const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
 
   useEffect(() => {
-    // Only initialize PC SpeechRecognition if NOT on mobile
     if (!isMobile) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -52,16 +47,14 @@ export default function StudioPage() {
 
   const toggleRecording = async () => {
     if (isRecording) {
-      // STOP LOGIC
       if (isMobile) {
-        mediaRecorderRef.current.stop(); // This triggers the transcription flow
+        mediaRecorderRef.current.stop();
       } else {
         recognitionRef.current?.stop();
       }
       setIsRecording(false);
       setStatus("✅ Processing audio...");
     } else {
-      // START LOGIC
       if (isMobile) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -70,13 +63,10 @@ export default function StudioPage() {
 
           mediaRecorderRef.current.ondataavailable = (e) => audioChunksRef.current.push(e.data);
           
-         // Inside your StudioPage.js, look for the mediaRecorderRef.current.onstop section:
-
           mediaRecorderRef.current.onstop = async () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
             setStatus("✨ Transcribing full recording...");
             
-            // FIX: We must 'await' the result and then manually call setText
             const transcribedText = await processVoiceInput(audioBlob, selectedId, newTitle, true); 
             
             if (transcribedText) {
@@ -86,6 +76,23 @@ export default function StudioPage() {
               setStatus("❌ Transcription empty or failed.");
             }
           };
+
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
+          setStatus("🎤 Recording...");
+        } catch (err) {
+          console.error(err);
+          setStatus("❌ Mic access denied.");
+        }
+      } else {
+        // PC Start Logic
+        finalTranscriptRef.current = text ? text + " " : "";
+        recognitionRef.current?.start();
+        setIsRecording(true);
+        setStatus("🎤 Listening...");
+      }
+    }
+  };
 
   const handleSave = () => {
     if (!text.trim()) return setStatus("⚠️ Please enter text first.");
