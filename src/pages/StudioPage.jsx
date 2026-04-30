@@ -4,6 +4,7 @@ import { useBookStore } from '../store/bookStore';
 
 export default function StudioPage() {
   const navigate = useNavigate();
+
   const [text, setText] = useState('');
   const [status, setStatus] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -16,215 +17,206 @@ export default function StudioPage() {
 
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
-  const uploadRef = useRef(null);
-  const textRef = useRef('');
+  const lastProcessedRef = useRef(''); // 🔥 KEY FIX
 
+  // ---------------- SPEECH SETUP ----------------
   useEffect(() => {
-    textRef.current = text;
-  }, [text]);
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.onresult = (event) => {
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcriptSnippet = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscriptRef.current += transcriptSnippet + ' ';
-          } else {
-            interimTranscript += transcriptSnippet;
-          }
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      let finalChunk = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+          finalChunk += t;
+        } else {
+          interim += t;
         }
-        setText(finalTranscriptRef.current + interimTranscript);
-      };
-      recognitionRef.current.onend = () => setIsRecording(false);
-    }
-  }, []);
+      }
 
-  const toggleRecording = () => {
-    if (isRecording) {
-      recognitionRef.current?.stop();
+      // 🔥 DIFF-BASED FILTER (THIS FIXES REPEATS)
+      if (finalChunk) {
+        const newText = finalChunk.replace(lastProcessedRef.current, '');
+
+        if (newText.trim()) {
+          finalTranscriptRef.current += newText + ' ';
+          lastProcessedRef.current = finalChunk;
+        }
+      }
+
+      setText(finalTranscriptRef.current + interim);
+    };
+
+    recognition.onerror = () => {
       setIsRecording(false);
-      setStatus("✅ Recording stopped.");
+      setStatus('⚠️ Mic error');
+    };
+
+    recognition.onend = () => {
+      // 🔥 FORCE CONTINUOUS RECORDING (mobile fix)
+      if (isRecording) {
+        try {
+          recognition.start();
+        } catch {}
+      }
+    };
+  }, [isRecording]);
+
+  // ---------------- RECORD TOGGLE ----------------
+  const toggleRecording = () => {
+    const rec = recognitionRef.current;
+    if (!rec) return;
+
+    if (isRecording) {
+      rec.stop();
+      setIsRecording(false);
+      setStatus('✅ Stopped');
     } else {
-      finalTranscriptRef.current = text;
-      recognitionRef.current?.start();
+      finalTranscriptRef.current = text ? text + ' ' : '';
+      lastProcessedRef.current = '';
+
+      rec.start();
       setIsRecording(true);
-      setStatus("🎤 Listening...");
+      setStatus('🎤 Listening...');
     }
   };
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setStatus("⏳ Transcribing your audio...");
-    const formData = new FormData();
-    formData.append('file', file, file.name);
-    formData.append('model', 'whisper-1');
-    try {
-      const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}` },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Transcription failed');
-      const data = await res.json();
-      const transcribed = data.text || '';
-      const updated = textRef.current ? textRef.current + '\n\n' + transcribed : transcribed;
-      setText(updated);
-      finalTranscriptRef.current = updated;
-      setStatus("✅ Transcription complete! Edit the text then save.");
-    } catch (err) {
-      setStatus("❌ Upload failed. Check your API key in .env");
-    }
-    e.target.value = '';
-  };
-
+  // ---------------- SAVE ----------------
   const handleSave = () => {
-    const current = textRef.current;
-    if (!current.trim()) return setStatus("⚠️ Please enter text first.");
-    processVoiceInput(current, selectedId || null, newTitle || null);
+    if (!text.trim()) return setStatus('⚠️ Enter text first.');
+
+    processVoiceInput(text, selectedId || null, newTitle || null);
+
     setText('');
     finalTranscriptRef.current = '';
-    textRef.current = '';
+    lastProcessedRef.current = '';
     setNewTitle('');
     setSelectedId('');
-    setStatus("✅ Saved! Check your Table of Contents.");
+
+    setStatus('✅ Saved');
   };
 
   const handleDelete = () => {
-    if (!selectedId) return setStatus("⚠️ Select a chapter to delete.");
-    if (window.confirm("Permanently delete this chapter and all its text?")) {
+    if (!selectedId) return;
+    if (window.confirm('Delete chapter?')) {
       deleteChapter(selectedId);
       setSelectedId('');
-      setStatus("🗑️ Deleted.");
     }
   };
 
+  // ---------------- UI ----------------
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      background: '#000',
+    }}>
 
       <nav style={{
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
         gap: '10px',
-        background: '#2c2c2c',
         padding: '8px',
-        flexShrink: 0,
+        background: '#2c2c2c',
       }}>
         {[
-          { label: 'COVER',    path: '/'        },
+          { label: 'COVER', path: '/' },
           { label: 'CONTENTS', path: '/contents' },
-          { label: 'READ',     path: '/reader'   },
-          { label: '✎ WRITE',  path: '/studio'   },
-          { label: '⚙ ADMIN',  path: '/admin'    },
-        ].map(({ label, path }) => (
+          { label: 'READ', path: '/reader' },
+          { label: 'WRITE', path: '/studio' },
+        ].map(b => (
           <button
-            key={path}
-            onClick={() => navigate(path)}
+            key={b.path}
+            onClick={() => navigate(b.path)}
             style={{
-              padding: '2px 18px',
-              background: path === '/studio' ? '#388E3C' : '#e0e0e0',
-              color: path === '/studio' ? 'white' : '#333',
+              padding: '4px 14px',
+              borderRadius: '4px',
               border: 'none',
-              borderRadius: '3px',
-              fontFamily: 'Cinzel, serif',
-              fontWeight: '700',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
+              background: b.path === '/studio' ? '#388E3C' : '#ddd',
+              fontSize: '12px',
             }}
           >
-            {label}
+            {b.label}
           </button>
         ))}
       </nav>
 
-      <main style={{
+      <div style={{
         flex: 1,
-        padding: '10px',
-        color: '#fff',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
-        overflow: 'hidden',
+        padding: '10px',
       }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            onClick={toggleRecording}
-            style={{
-              flex: 1, padding: '12px',
-              background: isRecording ? '#cc0000' : (text ? '#2ecc71' : '#222'),
-              color: '#fff', border: '1px solid #d4af37', fontWeight: 'bold', borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            {isRecording ? '⏹ STOP RECORDING' : '🎤 START RECORDING'}
-          </button>
-          <input ref={uploadRef} type="file" accept="audio/*,video/*" style={{ display: 'none' }} onChange={handleUpload} />
-          <button
-            onClick={() => uploadRef.current.click()}
-            style={{
-              flex: 1, padding: '12px', background: '#222',
-              color: '#d4af37', border: '1px solid #d4af37', borderRadius: '4px', cursor: 'pointer'
-            }}
-          >
-            📁 Upload Audio
-          </button>
-        </div>
-
-        <div style={{ flex: 1, border: '1px solid #d4af37', background: '#111', overflowY: 'auto', minHeight: 0 }}>
-          <textarea
-            value={text}
-            onChange={(e) => { setText(e.target.value); finalTranscriptRef.current = e.target.value; }}
-            placeholder="Speak or type your story here..."
-            style={{
-              width: '100%', height: '100%', background: 'transparent', color: '#fff',
-              border: 'none', padding: '12px', fontSize: '18px', outline: 'none', resize: 'none',
-              fontFamily: 'serif', lineHeight: '1.6', boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        <div style={{ background: '#111', padding: '12px', border: '1px solid #333', flexShrink: 0 }}>
-          <input
-            placeholder="New Chapter Name..."
-            value={newTitle}
-            onChange={(e) => { setNewTitle(e.target.value); setSelectedId(''); }}
-            style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#222', color: '#fff', border: '1px solid #444', boxSizing: 'border-box' }}
-          />
-          <div style={{ display: 'flex', gap: '5px' }}>
-            <select
-              value={selectedId}
-              onChange={(e) => { setSelectedId(e.target.value); setNewTitle(''); }}
-              style={{ flex: 1, padding: '10px', background: '#222', color: '#fff' }}
-            >
-              <option value="">-- Add to / Select Chapter --</option>
-              {chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.title}</option>)}
-            </select>
-            {selectedId && (
-              <button onClick={handleDelete} style={{ background: '#441111', color: '#ff4d4d', border: '1px solid #ff4d4d', padding: '0 15px', borderRadius: '4px', cursor: 'pointer' }}>🗑️</button>
-            )}
-          </div>
-        </div>
 
         <button
-          onClick={handleSave}
+          onClick={toggleRecording}
           style={{
-            width: '100%', padding: '16px', background: '#d4af37', color: '#000',
-            fontWeight: 'bold', border: 'none', fontSize: '18px', borderRadius: '4px',
-            cursor: 'pointer', flexShrink: 0,
+            padding: '14px',
+            background: isRecording ? '#c00' : '#2ecc71',
+            color: '#fff',
+            fontWeight: 'bold',
           }}
         >
-          SAVE TO BOOK
+          {isRecording ? 'STOP' : 'RECORD'}
         </button>
 
-        {status && <p style={{ textAlign: 'center', color: '#d4af37', margin: '5px 0', flexShrink: 0 }}>{status}</p>}
-      </main>
+        <textarea
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            finalTranscriptRef.current = e.target.value;
+          }}
+          style={{
+            flex: 1,
+            minHeight: '300px',
+            fontSize: '18px',
+            padding: '12px',
+            background: '#111',
+            color: '#fff',
+          }}
+        />
+
+        <input
+          placeholder="Chapter name"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+        />
+
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+        >
+          <option value="">Select chapter</option>
+          {chapters.map(c => (
+            <option key={c.id} value={c.id}>{c.title}</option>
+          ))}
+        </select>
+
+        {selectedId && (
+          <button onClick={handleDelete}>Delete</button>
+        )}
+
+        <button onClick={handleSave}>
+          SAVE
+        </button>
+
+        {status && <div>{status}</div>}
+      </div>
     </div>
   );
 }
