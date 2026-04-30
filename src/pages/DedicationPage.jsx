@@ -30,19 +30,19 @@ export default function DedicationPage() {
       <div style={{
         display: 'flex',
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-end', // Keeps image/text anchored to that "perfect" bottom spacing[cite: 1, 2]
         justifyContent: 'center',
         width: '100%',
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        // Nudged everything further RIGHT (from 300px to 340px)[cite: 1, 2]
         paddingLeft: '340px', 
+        paddingBottom: '12vh', // Adjust this if the bottom spacing needs a fine-tune[cite: 1, 2]
       }}>
 
-        {/* LEFT — IMAGE (Scaled down slightly) */}
+        {/* LEFT — IMAGE (Reduced to 6/8 height) */}
         <div style={{
-          flex: '0 0 300px', // Reduced width from 340px[cite: 1, 2]
+          flex: '0 0 300px',
           maxWidth: '300px',
           display: 'flex',
           flexDirection: 'column',
@@ -51,8 +51,8 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '280px', // Reduced from 320px[cite: 1, 2]
-            aspectRatio: '1 / 1',
+            maxWidth: '280px',
+            aspectRatio: '1 / 0.75', // Set to 6/8 (0.75) height ratio[cite: 1, 2]
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
             borderRadius: '6px',
@@ -94,7 +94,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT (Nudged RIGHT and UP) */}
+        {/* RIGHT — TEXT (Nudged LEFT) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -102,8 +102,8 @@ export default function DedicationPage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.6rem', 
-          paddingLeft: '80px', // Nudged RIGHT (from 60px)[cite: 1, 2]
-          paddingTop: '0px',   // Nudged UP (from 30px)[cite: 1, 2]
+          paddingLeft: '20px', // Reduced from 80px to move it LEFT[cite: 1, 2]
+          paddingBottom: '2vh', // Aligns it vertically with the image bottom[cite: 1, 2]
         }}>
 
           <div style={{
