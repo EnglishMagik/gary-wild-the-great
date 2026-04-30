@@ -23,27 +23,36 @@ export default function StudioPage() {
     textRef.current = text;
   }, [text]);
 
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.onresult = (event) => {
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcriptSnippet = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscriptRef.current += transcriptSnippet + ' ';
-          } else {
-            interimTranscript += transcriptSnippet;
-          }
-        }
-        setText(finalTranscriptRef.current + interimTranscript);
-      };
-      recognitionRef.current.onend = () => setIsRecording(false);
+useEffect(() => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) return;
+
+  recognitionRef.current = new SpeechRecognition();
+  recognitionRef.current.continuous = true;
+  recognitionRef.current.interimResults = true;
+
+  recognitionRef.current.onresult = (event) => {
+    let interimTranscript = '';
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcriptSnippet = event.results[i][0].transcript;
+
+      if (!transcriptSnippet) continue;
+
+      if (event.results[i].isFinal) {
+        finalTranscriptRef.current += transcriptSnippet + ' ';
+      } else {
+        interimTranscript += transcriptSnippet;
+      }
     }
-  }, []);
+
+    setText(finalTranscriptRef.current + interimTranscript);
+  };
+
+  recognitionRef.current.onend = () => setIsRecording(false);
+}, []);
 
   const toggleRecording = () => {
     if (isRecording) {
