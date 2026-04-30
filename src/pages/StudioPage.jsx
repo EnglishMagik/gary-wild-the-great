@@ -6,8 +6,8 @@ export default function StudioPage() {
   const navigate = useNavigate();
 
   const [text, setText] = useState('');
-  const [status, setStatus] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [status, setStatus] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [selectedId, setSelectedId] = useState('');
 
@@ -16,50 +16,54 @@ export default function StudioPage() {
   const deleteChapter = useBookStore((s) => s.deleteChapter);
 
   const recognitionRef = useRef(null);
-  const finalTranscriptRef = useRef('');
+  const finalRef = useRef('');
 
-  // ---------------- INIT SPEECH ----------------
+  // ---------------- INIT ----------------
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) return;
 
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
+    const rec = new SpeechRecognition();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
 
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    // ✅ FIXED: correct incremental handling (NO duplication)
-    recognition.onresult = (event) => {
+    rec.onresult = (event) => {
       let interim = '';
+      let final = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i][0].transcript;
+        const t = event.results[i][0].transcript;
 
         if (event.results[i].isFinal) {
-          finalTranscriptRef.current += result.trim() + ' ';
+          final += t;
         } else {
-          interim += result;
+          interim += t;
         }
       }
 
-      setText((finalTranscriptRef.current + interim).trim());
+      if (final) {
+        finalRef.current += final + ' ';
+      }
+
+      setText(finalRef.current + interim);
     };
 
-    recognition.onerror = () => {
+    rec.onerror = () => {
+      setStatus('Mic error');
       setIsRecording(false);
-      setStatus('⚠️ Mic error');
     };
 
-    recognition.onend = () => {
+    rec.onend = () => {
       setIsRecording(false);
     };
+
+    recognitionRef.current = rec;
   }, []);
 
-  // ---------------- TOGGLE RECORD ----------------
+  // ---------------- RECORD ----------------
   const toggleRecording = () => {
     const rec = recognitionRef.current;
     if (!rec) return;
@@ -67,41 +71,33 @@ export default function StudioPage() {
     if (isRecording) {
       rec.stop();
       setIsRecording(false);
-      setStatus('✅ Stopped');
+      setStatus('Stopped');
     } else {
       rec.start();
       setIsRecording(true);
-      setStatus('🎤 Listening...');
+      setStatus('Recording...');
     }
   };
 
   // ---------------- SAVE ----------------
   const handleSave = () => {
-    const clean = finalTranscriptRef.current.trim();
+    if (!text.trim()) return;
 
-    if (!clean) {
-      setStatus('⚠️ Enter text first.');
-      return;
-    }
-
-    processVoiceInput(clean, selectedId || null, newTitle || null);
+    processVoiceInput(text, selectedId || null, newTitle || null);
 
     setText('');
-    finalTranscriptRef.current = '';
+    finalRef.current = '';
     setNewTitle('');
     setSelectedId('');
-
-    setStatus('✅ Saved');
+    setStatus('Saved');
   };
 
   // ---------------- DELETE ----------------
   const handleDelete = () => {
     if (!selectedId) return;
-
     if (window.confirm('Delete chapter?')) {
       deleteChapter(selectedId);
       setSelectedId('');
-      setStatus('🗑️ Deleted');
     }
   };
 
@@ -109,40 +105,22 @@ export default function StudioPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
 
-      <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', padding: '8px', background: '#2c2c2c' }}>
+      <nav style={{ display: 'flex', justifyContent: 'center', gap: 10, padding: 8 }}>
         {[
           { label: 'COVER', path: '/' },
           { label: 'CONTENTS', path: '/contents' },
           { label: 'READ', path: '/reader' },
-          { label: 'WRITE', path: '/studio' },
+          { label: 'WRITE', path: '/studio' }
         ].map(b => (
-          <button
-            key={b.path}
-            onClick={() => navigate(b.path)}
-            style={{
-              padding: '4px 14px',
-              border: 'none',
-              borderRadius: '4px',
-              background: b.path === '/studio' ? '#388E3C' : '#ddd',
-              fontSize: '12px'
-            }}
-          >
+          <button key={b.path} onClick={() => navigate(b.path)}>
             {b.label}
           </button>
         ))}
       </nav>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px' }}>
+      <div style={{ flex: 1, padding: 10, display: 'flex', flexDirection: 'column' }}>
 
-        <button
-          onClick={toggleRecording}
-          style={{
-            padding: '14px',
-            background: isRecording ? '#c00' : '#2ecc71',
-            color: '#fff',
-            fontWeight: 'bold'
-          }}
-        >
+        <button onClick={toggleRecording}>
           {isRecording ? 'STOP' : 'RECORD'}
         </button>
 
@@ -150,16 +128,9 @@ export default function StudioPage() {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            finalTranscriptRef.current = e.target.value;
+            finalRef.current = e.target.value;
           }}
-          style={{
-            flex: 1,
-            minHeight: '300px',
-            fontSize: '18px',
-            padding: '12px',
-            background: '#111',
-            color: '#fff'
-          }}
+          style={{ flex: 1, fontSize: 18 }}
         />
 
         <input
@@ -168,10 +139,7 @@ export default function StudioPage() {
           onChange={(e) => setNewTitle(e.target.value)}
         />
 
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-        >
+        <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
           <option value="">Select chapter</option>
           {chapters.map(c => (
             <option key={c.id} value={c.id}>{c.title}</option>
@@ -184,7 +152,7 @@ export default function StudioPage() {
 
         <button onClick={handleSave}>SAVE</button>
 
-        {status && <div style={{ color: '#d4af37' }}>{status}</div>}
+        {status && <p>{status}</p>}
       </div>
     </div>
   );

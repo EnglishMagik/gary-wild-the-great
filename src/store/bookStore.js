@@ -1,206 +1,128 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useBookStore } from '../store/bookStore';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export default function StudioPage() {
-  const navigate = useNavigate();
+export const useBookStore = create(
+  persist(
+    (set, get) => ({
+      title: 'Gary Wild: The Great',
+      dedication: '',
+      coverImage: null,
 
-  const [text, setText] = useState('');
-  const [status, setStatus] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [selectedId, setSelectedId] = useState('');
+      chapters: [
+        {
+          id: 'ch-test-1',
+          title: 'In the Beginning, There Was Gary',
+          pages: [
+            {
+              id: 'pg-test-1',
+              text: 'It is a curious thing to be born great...',
+              media: []
+            }
+          ]
+        }
+      ],
 
-  const chapters = useBookStore((s) => s.chapters);
-  const processVoiceInput = useBookStore((s) => s.processVoiceInput);
-  const deleteChapter = useBookStore((s) => s.deleteChapter);
+      currentPageIndex: 0,
+      toast: null,
+      mediaLibrary: [],
 
-  const recognitionRef = useRef(null);
-  const finalTranscriptRef = useRef('');
-  const lastProcessedRef = useRef(''); // 🔥 KEY FIX
+      // ---------------- CHAPTERS ----------------
+      addChapter: (title) => {
+        const id = 'ch-' + Date.now();
+        set((s) => ({
+          chapters: [...s.chapters, { id, title, pages: [] }]
+        }));
+        return id;
+      },
 
-  // ---------------- SPEECH SETUP ----------------
-  useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      deleteChapter: (id) => {
+        set((s) => ({
+          chapters: s.chapters.filter((ch) => ch.id !== id)
+        }));
+        get().showToast('Chapter deleted');
+      },
 
-    if (!SpeechRecognition) return;
+      renameChapter: (id, newTitle) => {
+        set((s) => ({
+          chapters: s.chapters.map((ch) =>
+            ch.id === id ? { ...ch, title: newTitle } : ch
+          )
+        }));
+      },
 
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
+      // ---------------- PAGES ----------------
+      addPage: (chapterId, text) => {
+        set((s) => ({
+          chapters: s.chapters.map((ch) => {
+            if (ch.id !== chapterId) return ch;
 
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
+            const pages = [...ch.pages];
+            const last = pages[pages.length - 1];
 
-recognition.onresult = (event) => {
-  let text = '';
+            if (last && last.text.length < 800) {
+              last.text += '\n\n' + text;
+              return { ...ch, pages };
+            }
 
-  for (let i = event.resultIndex; i < event.results.length; i++) {
-    text += event.results[i][0].transcript;
-  }
+            return {
+              ...ch,
+              pages: [
+                ...pages,
+                { id: 'pg-' + Date.now(), text, media: [] }
+              ]
+            };
+          })
+        }));
+      },
 
-  setText(text);
-  finalTranscriptRef.current = text;
-};
+      deletePage: (chapterId, pageId) => {
+        set((s) => ({
+          chapters: s.chapters.map((ch) => {
+            if (ch.id !== chapterId) return ch;
+            return {
+              ...ch,
+              pages: ch.pages.filter((p) => p.id !== pageId)
+            };
+          })
+        }));
+      },
 
-    recognition.onerror = () => {
-      setIsRecording(false);
-      setStatus('⚠️ Mic error');
-    };
+      // ---------------- VOICE PIPELINE ----------------
+      processVoiceInput: (rawText, chapterId = null, newChapterTitle = null) => {
+        const cleaned = rawText.trim();
+        if (!cleaned) return;
 
-    recognition.onend = () => {
-      // 🔥 FORCE CONTINUOUS RECORDING (mobile fix)
-      if (isRecording) {
-        try {
-          recognition.start();
-        } catch {}
+        let targetId = chapterId;
+
+        if (newChapterTitle) {
+          targetId = get().addChapter(newChapterTitle);
+        }
+
+        if (!targetId) {
+          const chs = get().chapters;
+          targetId =
+            chs.length === 0
+              ? get().addChapter('Chapter One')
+              : chs[chs.length - 1].id;
+        }
+
+        get().addPage(targetId, cleaned);
+      },
+
+      // ---------------- UI HELPERS ----------------
+      setDedication: (text) => set({ dedication: text }),
+      setCoverImage: (img) => set({ coverImage: img }),
+
+      setCurrentPage: (index) => set({ currentPageIndex: index }),
+
+      showToast: (msg) => {
+        set({ toast: msg });
+        setTimeout(() => set({ toast: null }), 3000);
       }
-    };
-  }, [isRecording]);
-
-  // ---------------- RECORD TOGGLE ----------------
-  const toggleRecording = () => {
-    const rec = recognitionRef.current;
-    if (!rec) return;
-
-    if (isRecording) {
-      rec.stop();
-      setIsRecording(false);
-      setStatus('✅ Stopped');
-    } else {
-      finalTranscriptRef.current = text ? text + ' ' : '';
-      lastProcessedRef.current = '';
-
-      rec.start();
-      setIsRecording(true);
-      setStatus('🎤 Listening...');
+    }),
+    {
+      name: 'gary-wild-book',
+      version: 2
     }
-  };
-
-  // ---------------- SAVE ----------------
-  const handleSave = () => {
-    if (!text.trim()) return setStatus('⚠️ Enter text first.');
-
-    processVoiceInput(text, selectedId || null, newTitle || null);
-
-    setText('');
-    finalTranscriptRef.current = '';
-    lastProcessedRef.current = '';
-    setNewTitle('');
-    setSelectedId('');
-
-    setStatus('✅ Saved');
-  };
-
-  const handleDelete = () => {
-    if (!selectedId) return;
-    if (window.confirm('Delete chapter?')) {
-      deleteChapter(selectedId);
-      setSelectedId('');
-    }
-  };
-
-  // ---------------- UI ----------------
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      background: '#000',
-    }}>
-
-      <nav style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '10px',
-        padding: '8px',
-        background: '#2c2c2c',
-      }}>
-        {[
-          { label: 'COVER', path: '/' },
-          { label: 'CONTENTS', path: '/contents' },
-          { label: 'READ', path: '/reader' },
-          { label: 'WRITE', path: '/studio' },
-        ].map(b => (
-          <button
-            key={b.path}
-            onClick={() => navigate(b.path)}
-            style={{
-              padding: '4px 14px',
-              borderRadius: '4px',
-              border: 'none',
-              background: b.path === '/studio' ? '#388E3C' : '#ddd',
-              fontSize: '12px',
-            }}
-          >
-            {b.label}
-          </button>
-        ))}
-      </nav>
-
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        padding: '10px',
-      }}>
-
-        <button
-          onClick={toggleRecording}
-          style={{
-            padding: '14px',
-            background: isRecording ? '#c00' : '#2ecc71',
-            color: '#fff',
-            fontWeight: 'bold',
-          }}
-        >
-          {isRecording ? 'STOP' : 'RECORD'}
-        </button>
-
-        <textarea
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            finalTranscriptRef.current = e.target.value;
-          }}
-          style={{
-            flex: 1,
-            minHeight: '300px',
-            fontSize: '18px',
-            padding: '12px',
-            background: '#111',
-            color: '#fff',
-          }}
-        />
-
-        <input
-          placeholder="Chapter name"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-        />
-
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-        >
-          <option value="">Select chapter</option>
-          {chapters.map(c => (
-            <option key={c.id} value={c.id}>{c.title}</option>
-          ))}
-        </select>
-
-        {selectedId && (
-          <button onClick={handleDelete}>Delete</button>
-        )}
-
-        <button onClick={handleSave}>
-          SAVE
-        </button>
-
-        {status && <div>{status}</div>}
-      </div>
-    </div>
-  );
-}
+  )
+);
