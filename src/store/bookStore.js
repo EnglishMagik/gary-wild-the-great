@@ -113,10 +113,10 @@ export const useBookStore = create(
             if (ch.id !== chapterId) return ch;
             const pages = [...ch.pages];
             const lastPage = pages[pages.length - 1];
-if (lastPage && lastPage.text.length < 800) {
-  const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
-  return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
-} else {
+            if (lastPage && lastPage.text.length < 800) {
+              const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
+              return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
+            } else {
               return {
                 ...ch,
                 pages: [...pages, { id: 'pg-' + Date.now(), text, media: [] }]
@@ -141,9 +141,29 @@ if (lastPage && lastPage.text.length < 800) {
         get().showToast("Changes saved.");
       },
 
-      processVoiceInput: (rawText, chapterId = null, newChapterTitle = null) => {
-        const cleaned = rawText.trim();
-        if (!cleaned) return;
+      processVoiceInput: async (input, chapterId = null, newChapterTitle = null, isMobileBlob = false) => {
+        let finalOutput = "";
+
+        if (isMobileBlob) {
+          // If input is an audio blob from mobile, we must process it into text
+          try {
+            // Note: Replace '/api/transcribe' with your actual transcription endpoint
+            const formData = new FormData();
+            formData.append('file', input, 'recording.wav');
+            const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
+            const data = await response.json();
+            finalOutput = data.text;
+          } catch (err) {
+            get().showToast("Transcription failed.");
+            return;
+          }
+        } else {
+          // PC version simply uses the raw text string
+          finalOutput = typeof input === 'string' ? input.trim() : "";
+        }
+
+        if (!finalOutput) return;
+
         let targetId = chapterId;
         if (newChapterTitle) {
           targetId = get().addChapter(newChapterTitle);
@@ -151,7 +171,9 @@ if (lastPage && lastPage.text.length < 800) {
           const chs = get().chapters;
           targetId = chs.length === 0 ? get().addChapter('Chapter One') : chs[chs.length - 1].id;
         }
-        get().addPage(targetId, cleaned);
+
+        get().addPage(targetId, finalOutput);
+        return finalOutput;
       },
 
       setDedication: (text) => set({ dedication: text }),
