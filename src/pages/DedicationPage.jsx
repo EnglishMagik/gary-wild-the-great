@@ -30,20 +30,18 @@ export default function DedicationPage() {
       <div style={{
         display: 'flex',
         flexDirection: 'row',
-        alignItems: 'flex-end', 
+        alignItems: 'center', 
         justifyContent: 'center',
         width: '100%',
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
         paddingLeft: '340px', 
-        // Pushes the whole set down slightly toward the bottom leather edge[cite: 1, 2]
-        paddingBottom: '10vh', 
       }}>
 
-        {/* LEFT — IMAGE (Slightly bigger) */}
+        {/* LEFT — IMAGE (Back to 8/8) */}
         <div style={{
-          flex: '0 0 320px', // Increased from 300px[cite: 1, 2]
+          flex: '0 0 320px',
           maxWidth: '320px',
           display: 'flex',
           flexDirection: 'column',
@@ -52,8 +50,8 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '300px', // Increased from 280px[cite: 1, 2]
-            aspectRatio: '1 / 0.75', 
+            maxWidth: '300px',
+            aspectRatio: '1 / 1', // Back to 8/8 square ratio[cite: 1]
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
             borderRadius: '6px',
@@ -81,21 +79,10 @@ export default function DedicationPage() {
               />
             </div>
           </div>
-
-          <div style={{
-            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontSize: 'clamp(0.7rem, 1vw, 0.95rem)',
-            color: '#2a1a08',
-            textAlign: 'center',
-            marginTop: '0.8rem',
-          }}>
-            Making Life Magic
-          </div>
+          {/* Removed text from under image[cite: 2] */}
         </div>
 
-        {/* RIGHT — TEXT (Moved down slightly) */}
+        {/* RIGHT — TEXT & BUTTON (Moved slightly down) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -104,8 +91,8 @@ export default function DedicationPage() {
           justifyContent: 'center',
           gap: '0.6rem', 
           paddingLeft: '20px',
-          // Adjusted to move the text block down[cite: 1, 2]
-          paddingBottom: '1vh', 
+          // Increased top padding to nudge the whole group down
+          paddingTop: '40px', 
         }}>
 
           <div style={{
@@ -149,16 +136,16 @@ export default function DedicationPage() {
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
-              padding: '0.3rem 1.5rem',
+              padding: '0.4rem 1.8rem', // Slightly wider for new text[cite: 2]
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
-              letterSpacing: '0.2em',
+              letterSpacing: '0.15em',
               color: '#2a2a2a',
               cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             }}
           >
-            ENTER
+            MAKING LIFE MAGIC
           </button>
         </div>
       </div>
