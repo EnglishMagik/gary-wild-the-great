@@ -30,35 +30,19 @@ export default function StudioPage() {
     recognitionRef.current = recognition;
 
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    recognition.onresult = (event) => {
-      let interim = '';
-      let finalChunk = '';
+recognition.onresult = (event) => {
+  let text = '';
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    text += event.results[i][0].transcript;
+  }
 
-        if (event.results[i].isFinal) {
-          finalChunk += t;
-        } else {
-          interim += t;
-        }
-      }
-
-      // 🔥 DIFF-BASED FILTER (THIS FIXES REPEATS)
-      if (finalChunk) {
-        const newText = finalChunk.replace(lastProcessedRef.current, '');
-
-        if (newText.trim()) {
-          finalTranscriptRef.current += newText + ' ';
-          lastProcessedRef.current = finalChunk;
-        }
-      }
-
-      setText(finalTranscriptRef.current + interim);
-    };
+  setText(text);
+  finalTranscriptRef.current = text;
+};
 
     recognition.onerror = () => {
       setIsRecording(false);

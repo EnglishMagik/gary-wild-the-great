@@ -17,9 +17,8 @@ export default function StudioPage() {
 
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
-  const lastProcessedRef = useRef(''); // 🔥 KEY FIX
 
-  // ---------------- SPEECH SETUP ----------------
+  // ---------------- INIT SPEECH ----------------
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -33,31 +32,21 @@ export default function StudioPage() {
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
+    // ✅ FIXED: correct incremental handling (NO duplication)
     recognition.onresult = (event) => {
       let interim = '';
-      let finalChunk = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
+        const result = event.results[i][0].transcript;
 
         if (event.results[i].isFinal) {
-          finalChunk += t;
+          finalTranscriptRef.current += result.trim() + ' ';
         } else {
-          interim += t;
+          interim += result;
         }
       }
 
-      // 🔥 DIFF-BASED FILTER (THIS FIXES REPEATS)
-      if (finalChunk) {
-        const newText = finalChunk.replace(lastProcessedRef.current, '');
-
-        if (newText.trim()) {
-          finalTranscriptRef.current += newText + ' ';
-          lastProcessedRef.current = finalChunk;
-        }
-      }
-
-      setText(finalTranscriptRef.current + interim);
+      setText((finalTranscriptRef.current + interim).trim());
     };
 
     recognition.onerror = () => {
@@ -66,16 +55,11 @@ export default function StudioPage() {
     };
 
     recognition.onend = () => {
-      // 🔥 FORCE CONTINUOUS RECORDING (mobile fix)
-      if (isRecording) {
-        try {
-          recognition.start();
-        } catch {}
-      }
+      setIsRecording(false);
     };
-  }, [isRecording]);
+  }, []);
 
-  // ---------------- RECORD TOGGLE ----------------
+  // ---------------- TOGGLE RECORD ----------------
   const toggleRecording = () => {
     const rec = recognitionRef.current;
     if (!rec) return;
@@ -85,9 +69,6 @@ export default function StudioPage() {
       setIsRecording(false);
       setStatus('✅ Stopped');
     } else {
-      finalTranscriptRef.current = text ? text + ' ' : '';
-      lastProcessedRef.current = '';
-
       rec.start();
       setIsRecording(true);
       setStatus('🎤 Listening...');
@@ -96,43 +77,39 @@ export default function StudioPage() {
 
   // ---------------- SAVE ----------------
   const handleSave = () => {
-    if (!text.trim()) return setStatus('⚠️ Enter text first.');
+    const clean = finalTranscriptRef.current.trim();
 
-    processVoiceInput(text, selectedId || null, newTitle || null);
+    if (!clean) {
+      setStatus('⚠️ Enter text first.');
+      return;
+    }
+
+    processVoiceInput(clean, selectedId || null, newTitle || null);
 
     setText('');
     finalTranscriptRef.current = '';
-    lastProcessedRef.current = '';
     setNewTitle('');
     setSelectedId('');
 
     setStatus('✅ Saved');
   };
 
+  // ---------------- DELETE ----------------
   const handleDelete = () => {
     if (!selectedId) return;
+
     if (window.confirm('Delete chapter?')) {
       deleteChapter(selectedId);
       setSelectedId('');
+      setStatus('🗑️ Deleted');
     }
   };
 
   // ---------------- UI ----------------
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      background: '#000',
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
 
-      <nav style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '10px',
-        padding: '8px',
-        background: '#2c2c2c',
-      }}>
+      <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', padding: '8px', background: '#2c2c2c' }}>
         {[
           { label: 'COVER', path: '/' },
           { label: 'CONTENTS', path: '/contents' },
@@ -144,10 +121,10 @@ export default function StudioPage() {
             onClick={() => navigate(b.path)}
             style={{
               padding: '4px 14px',
-              borderRadius: '4px',
               border: 'none',
+              borderRadius: '4px',
               background: b.path === '/studio' ? '#388E3C' : '#ddd',
-              fontSize: '12px',
+              fontSize: '12px'
             }}
           >
             {b.label}
@@ -155,13 +132,7 @@ export default function StudioPage() {
         ))}
       </nav>
 
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        padding: '10px',
-      }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px' }}>
 
         <button
           onClick={toggleRecording}
@@ -169,7 +140,7 @@ export default function StudioPage() {
             padding: '14px',
             background: isRecording ? '#c00' : '#2ecc71',
             color: '#fff',
-            fontWeight: 'bold',
+            fontWeight: 'bold'
           }}
         >
           {isRecording ? 'STOP' : 'RECORD'}
@@ -187,7 +158,7 @@ export default function StudioPage() {
             fontSize: '18px',
             padding: '12px',
             background: '#111',
-            color: '#fff',
+            color: '#fff'
           }}
         />
 
@@ -211,11 +182,9 @@ export default function StudioPage() {
           <button onClick={handleDelete}>Delete</button>
         )}
 
-        <button onClick={handleSave}>
-          SAVE
-        </button>
+        <button onClick={handleSave}>SAVE</button>
 
-        {status && <div>{status}</div>}
+        {status && <div style={{ color: '#d4af37' }}>{status}</div>}
       </div>
     </div>
   );
