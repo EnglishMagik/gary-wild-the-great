@@ -34,13 +34,15 @@ export default function StudioPage() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcriptSnippet = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscriptRef.current += transcriptSnippet + ' ';
+            if (transcriptSnippet && transcriptSnippet.trim().toLowerCase() !== "i don't know") {
+  finalTranscriptRef.current += transcriptSnippet + ' ';
+}
           } else {
             interimTranscript += transcriptSnippet;
           }
         }
-        setText(finalTranscriptRef.current + interimTranscript);
-      };
+const cleanFinal = finalTranscriptRef.current || '';
+setText(cleanFinal + interimTranscript);      };
       recognitionRef.current.onend = () => setIsRecording(false);
     }
   }, []);
