@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBookStore } from '../store/bookStore';
 
 export default function StudioPage() {
+  const navigate = useNavigate();
+
   const [text, setText] = useState('');
   const [status, setStatus] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -11,113 +14,154 @@ export default function StudioPage() {
   const chapters = useBookStore((s) => s.chapters);
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter = useBookStore((s) => s.deleteChapter);
-  
+
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
+  const textRef = useRef('');
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+    textRef.current = text;
+  }, [text]);
 
-      recognitionRef.current.onresult = (event) => {
-        let interimTranscript = '';
-        let newlyFinalized = '';
+  // ---------------- SIMPLE STABLE SPEECH ----------------
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcriptSnippet = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            // ONLY add to the permanent pile when the browser is 100% sure
-            newlyFinalized += transcriptSnippet + ' ';
-          } else {
-            // "Thinking" text stays temporary
-            interimTranscript += transcriptSnippet;
-          }
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    const safeStart = () => {
+      try {
+        recognition.start();
+      } catch (e) {}
+    };
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let newlyFinalized = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+          // ✅ ONLY commit FINAL speech (this fixes repeats)
+          newlyFinalized += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
         }
-        
+      }
+
+      if (newlyFinalized) {
         finalTranscriptRef.current += newlyFinalized;
-        // Screen = Everything saved so far + the current thinking
-        setText(finalTranscriptRef.current + interimTranscript);
-      };
+      }
 
-      recognitionRef.current.onend = () => {
-        setIsRecording(false);
-        // We do NOT clear the screen here. It stays so you can read it.
-        setStatus("⏸ Paused (Tap Record to continue)");
-      };
-    }
-  }, []);
+      setText(finalTranscriptRef.current + interimTranscript);
+    };
 
-  const toggleRecording = () => {
-    if (isRecording) {
-      recognitionRef.current?.stop();
+    recognition.onerror = () => {
+      setStatus('⚠️ Mic error');
       setIsRecording(false);
-      setStatus("✅ Recording stopped.");
+    };
+
+    recognition.onend = () => {
+      // ✅ FIX auto-stop: restart only if user still recording
+      if (isRecording) {
+        setTimeout(() => safeStart(), 200);
+      }
+    };
+  }, [isRecording]);
+
+  // ---------------- CONTROLS ----------------
+  const toggleRecording = () => {
+    const rec = recognitionRef.current;
+    if (!rec) return;
+
+    if (isRecording) {
+      rec.stop();
+      setIsRecording(false);
+      setStatus('✅ Recording stopped.');
     } else {
-      // PICK UP WHERE YOU LEFT OFF
-      // This is the key: we don't clear finalTranscriptRef, we use what is already in text.
-      finalTranscriptRef.current = text; 
-      recognitionRef.current?.start();
-      setIsRecording(true);
-      setStatus("🎤 Listening..."); 
+      finalTranscriptRef.current = '';
+      textRef.current = '';
+      setText('');
+
+      try {
+        rec.start();
+        setIsRecording(true);
+        setStatus('🎤 Listening...');
+      } catch (e) {}
     }
   };
 
   const handleSave = () => {
-    if (!text.trim()) return setStatus("⚠️ Please enter text first.");
-    processVoiceInput(text, selectedId, newTitle);
-    
-    // ONLY clear now that it's safe in the book
+    const current = textRef.current;
+    if (!current.trim()) return setStatus('⚠️ Please enter text first.');
+
+    processVoiceInput(current, selectedId || null, newTitle || null);
+
     setText('');
     finalTranscriptRef.current = '';
+    textRef.current = '';
     setNewTitle('');
-    setStatus("✅ Saved! Check your Table of Contents.");
+    setSelectedId('');
+    setStatus('✅ Saved!');
   };
 
   const handleDelete = () => {
-    if (!selectedId) return setStatus("⚠️ Select a chapter to delete.");
-    if (window.confirm("Permanently delete this chapter?")) {
+    if (!selectedId) return;
+    if (window.confirm('Delete chapter?')) {
       deleteChapter(selectedId);
       setSelectedId('');
-      setStatus("🗑️ Deleted.");
     }
   };
 
-  // UI remains exactly as your working old version
+  // ---------------- UI ----------------
   return (
-    <main style={{ padding: '10px', background: '#000', color: '#fff', height: '85vh', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button onClick={toggleRecording} style={{ flex: 1, padding: '12px', background: isRecording ? '#cc0000' : (text ? '#2ecc71' : '#222'), color: '#fff', border: '1px solid #d4af37', fontWeight: 'bold', borderRadius: '4px' }}>
-          {isRecording ? '⏹ STOP RECORDING' : '🎤 START RECORDING'}
-        </button>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+      <nav style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '10px',
+        padding: '8px',
+        background: '#2c2c2c',
+      }}>
+        {[
+          { label: 'COVER', path: '/' },
+          { label: 'CONTENTS', path: '/contents' },
+          { label: 'READ', path: '/reader' },
+          { label: 'WRITE', path: '/studio' },
+        ].map(b => (
+          <button key={b.path} onClick={() => navigate(b.path)}>
+            {b.label}
+          </button>
+        ))}
+      </nav>
 
-      <div style={{ flex: '1', minHeight: '120px', border: '1px solid #d4af37', background: '#111', overflowY: 'auto' }}>
-        <textarea 
-          value={text} 
+      <div style={{ flex: 1, padding: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <button onClick={toggleRecording}>
+          {isRecording ? 'STOP' : 'RECORD'}
+        </button>
+
+        <textarea
+          value={text}
           onChange={(e) => {
             setText(e.target.value);
             finalTranscriptRef.current = e.target.value;
-          }} 
-          placeholder="Continue your story here..."
-          style={{ width: '100%', height: '100%', background: 'transparent', color: '#fff', border: 'none', padding: '12px', fontSize: '18px', outline: 'none', resize: 'none', fontFamily: 'serif', lineHeight: '1.6' }}
+          }}
+          style={{ flex: 1 }}
         />
-      </div>
 
-      <div style={{ background: '#111', padding: '12px', border: '1px solid #333' }}>
-        <input placeholder="New Chapter Name..." value={newTitle} onChange={(e) => {setNewTitle(e.target.value); setSelectedId('');}} style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#222', color: '#fff', border: '1px solid #444' }} />
-        <select value={selectedId} onChange={(e) => {setSelectedId(e.target.value); setNewTitle('');}} style={{ width: '100%', padding: '10px', background: '#222', color: '#fff' }}>
-          <option value="">-- Add to / Select Chapter --</option>
-          {chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.title}</option>)}
-        </select>
-      </div>
+        <button onClick={handleSave}>SAVE</button>
 
-      <button onClick={handleSave} style={{ width: '100%', padding: '16px', background: '#d4af37', color: '#000', fontWeight: 'bold', border: 'none', fontSize: '18px', borderRadius: '4px' }}>
-        SAVE TO BOOK
-      </button>
-      {status && <p style={{ textAlign: 'center', color: '#d4af37', margin: '5px 0' }}>{status}</p>}
-    </main>
+        {status && <div>{status}</div>}
+      </div>
+    </div>
   );
 }
