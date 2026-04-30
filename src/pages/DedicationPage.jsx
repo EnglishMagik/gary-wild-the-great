@@ -36,14 +36,14 @@ export default function DedicationPage() {
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        // Nudging EVERYTHING further RIGHT to clear the left leather edge[cite: 1, 2]
-        paddingLeft: '300px', 
+        // Nudged everything further RIGHT (from 300px to 340px)[cite: 1, 2]
+        paddingLeft: '340px', 
       }}>
 
-        {/* LEFT — IMAGE */}
+        {/* LEFT — IMAGE (Scaled down slightly) */}
         <div style={{
-          flex: '0 0 340px',
-          maxWidth: '340px',
+          flex: '0 0 300px', // Reduced width from 340px[cite: 1, 2]
+          maxWidth: '300px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -51,7 +51,7 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '320px',
+            maxWidth: '280px', // Reduced from 320px[cite: 1, 2]
             aspectRatio: '1 / 1',
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -88,13 +88,13 @@ export default function DedicationPage() {
             fontSize: 'clamp(0.7rem, 1vw, 0.95rem)',
             color: '#2a1a08',
             textAlign: 'center',
-            marginTop: '1rem',
+            marginTop: '0.8rem',
           }}>
             Making Life Magic
           </div>
         </div>
 
-        {/* RIGHT — TEXT (Nudged UP) */}
+        {/* RIGHT — TEXT (Nudged RIGHT and UP) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -102,9 +102,8 @@ export default function DedicationPage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.6rem', 
-          paddingLeft: '60px', 
-          // Reduced from 80px to 30px to move text and button UP[cite: 1, 2]
-          paddingTop: '30px',  
+          paddingLeft: '80px', // Nudged RIGHT (from 60px)[cite: 1, 2]
+          paddingTop: '0px',   // Nudged UP (from 30px)[cite: 1, 2]
         }}>
 
           <div style={{
