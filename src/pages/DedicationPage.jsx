@@ -39,10 +39,10 @@ export default function DedicationPage() {
         paddingLeft: '340px', 
       }}>
 
-        {/* LEFT — IMAGE (Scaled to 7/8 size) */}
+        {/* LEFT — IMAGE (Restored to 7/8 size) */}
         <div style={{
-          flex: '0 0 280px', // Reduced width from 320px to 280px (7/8)
-          maxWidth: '280px',
+          flex: '0 0 320px', // Restored width from 280px to 320px[cite: 1, 2]
+          maxWidth: '320px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -50,7 +50,7 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '262px', // Reduced proportionally (7/8 of 300px)
+            maxWidth: '300px', // Adjusted proportionally to fit the 320px width[cite: 1, 2]
             aspectRatio: '1 / 1', 
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -86,10 +86,10 @@ export default function DedicationPage() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',
+          alignItems: 'center', // Changed from flex-start to horizontally center contents[cite: 1, 2]
           justifyContent: 'center',
           gap: '0.6rem', 
-          paddingLeft: '20px',
+          paddingRight: '60px', // Added some right padding for balance within the frame window[cite: 1, 2]
           paddingTop: '40px', 
         }}>
 
@@ -102,27 +102,23 @@ export default function DedicationPage() {
             ✦ ✦ ✦
           </div>
 
-          {/* Removed silver line */}
-
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
             fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
             color: '#3a2010',
-            textAlign: 'left',
+            textAlign: 'center', // Changed to center text within this column[cite: 1, 2]
             lineHeight: 1.8,
             whiteSpace: 'pre-line',
           }}>
             {displayText}
           </div>
 
-          {/* Removed silver line */}
-
           <div style={{
             display: 'flex',
             width: '100%',
-            justifyContent: 'center', // Centralize the button
+            justifyContent: 'center', // Centralize the button[cite: 1, 2]
             marginTop: '0.2rem',
           }}>
             <button
