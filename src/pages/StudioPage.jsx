@@ -18,7 +18,6 @@ export default function StudioPage() {
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
   const textRef = useRef('');
-  const lastFinalRef = useRef('');
 
   useEffect(() => {
     textRef.current = text;
@@ -36,26 +35,25 @@ export default function StudioPage() {
     recognition.lang = 'en-US';
 
     recognition.onresult = (event) => {
-      let interim = '';
-      let newFinals = '';
+      let interimTranscript = '';
+      let newlyFinalizedText = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript.trim();
+        const transcript = event.results[i][0].transcript;
         
         if (event.results[i].isFinal) {
-          // Guard against mobile repeats
-          if (transcript !== lastFinalRef.current) {
-            newFinals += transcript + ' ';
-            lastFinalRef.current = transcript;
-          }
+          // 🔥 Only add to the permanent record when it's 100% finished
+          newlyFinalizedText += transcript + ' ';
         } else {
-          interim += transcript + ' ';
+          // This is the "thinking" text - we show it but don't SAVE it yet
+          interimTranscript += transcript;
         }
       }
 
-      // Add to current session memory without deleting what was there
-      finalTranscriptRef.current += newFinals;
-      setText(finalTranscriptRef.current + interim);
+      finalTranscriptRef.current += newlyFinalizedText;
+      
+      // We show the permanent text PLUS the current thinking text
+      setText(finalTranscriptRef.current + interimTranscript);
     };
 
     recognition.onerror = (e) => {
@@ -79,9 +77,7 @@ export default function StudioPage() {
       setIsRecording(false);
       setStatus('✅ Recording stopped.');
     } else {
-      // NOTICE: We do NOT clear finalTranscriptRef or text here anymore.
-      // This allows you to build the text up across multiple recording bursts.
-      lastFinalRef.current = ''; 
+      // We keep existing text on screen for your autobiography
       setStatus('🎤 Listening...');
       setIsRecording(true);
       try {
@@ -98,10 +94,8 @@ export default function StudioPage() {
 
     processVoiceInput(current, selectedId || null, newTitle || null);
 
-    // ONLY clear the screen once the work is safely saved to the store
     setText('');
     finalTranscriptRef.current = '';
-    lastFinalRef.current = '';
     setNewTitle('');
     setSelectedId('');
     setStatus('✅ Saved to Book!');
@@ -133,7 +127,7 @@ export default function StudioPage() {
           onClick={toggleRecording}
           style={{ padding: '20px', background: isRecording ? '#c0392b' : '#27ae60', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.2rem' }}
         >
-          {isRecording ? 'STOP RECORDING' : 'START RECORDING'}
+          {isRecording ? 'STOP' : 'RECORD'}
         </button>
 
         <textarea
@@ -162,11 +156,8 @@ export default function StudioPage() {
           {chapters.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
         </select>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={handleSave} style={{ flex: 2, padding: '15px', background: '#d4af37', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px' }}>SAVE WORK</button>
-          {selectedId && <button onClick={handleDelete} style={{ flex: 1, padding: '15px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '4px' }}>DELETE</button>}
-        </div>
-
+        <button onClick={handleSave} style={{ padding: '15px', background: '#d4af37', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px' }}>SAVE WORK</button>
+        
         {status && <p style={{ textAlign: 'center', color: '#d4af37' }}>{status}</p>}
       </div>
     </div>
