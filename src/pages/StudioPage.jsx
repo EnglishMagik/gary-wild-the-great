@@ -24,56 +24,80 @@ export default function StudioPage() {
   }, [text]);
 
   // ---------------- SPEECH RECOGNITION (FIXED MOBILE DUPLICATION) ----------------
-  useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+useEffect(() => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) return;
+  if (!SpeechRecognition) return;
 
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
+  const recognition = new SpeechRecognition();
+  recognitionRef.current = recognition;
 
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
 
-    const lastFinalRef = { current: '' };
+  // 🔥 STRONG DEDUPE BUFFER (last N chunks)
+  const recentFinals = [];
 
-    recognition.onresult = (event) => {
-      let interim = '';
-      let final = '';
+  const isDuplicate = (text) => {
+    const cleaned = text.trim();
+    return recentFinals.includes(cleaned);
+  };
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (!t) continue;
+  const pushFinal = (text) => {
+    const cleaned = text.trim();
+    recentFinals.push(cleaned);
+    if (recentFinals.length > 20) recentFinals.shift();
+  };
 
-        if (event.results[i].isFinal) {
-          const cleaned = t.trim();
+  recognition.onresult = (event) => {
+    let interim = '';
+    let final = '';
 
-          if (cleaned && cleaned !== lastFinalRef.current) {
-            final += cleaned + ' ';
-            lastFinalRef.current = cleaned;
-          }
-        } else {
-          interim += t;
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+
+      if (!t) continue;
+
+      if (event.results[i].isFinal) {
+        const cleaned = t.trim();
+
+        // 🔥 HARD BLOCK DUPLICATES (mobile fix)
+        if (!isDuplicate(cleaned)) {
+          final += cleaned + ' ';
+          pushFinal(cleaned);
         }
+      } else {
+        interim += t;
       }
+    }
 
-      finalTranscriptRef.current =
-        finalTranscriptRef.current + final;
+    finalTranscriptRef.current =
+      finalTranscriptRef.current + final;
 
-      setText(finalTranscriptRef.current + interim);
-    };
+    setText(finalTranscriptRef.current + interim);
+  };
 
-    recognition.onerror = () => {
-      setIsRecording(false);
-      setStatus('⚠️ Microphone error');
-    };
+  recognition.onerror = () => {
+    setIsRecording(false);
+    setStatus('⚠️ Microphone error');
+  };
 
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-  }, []);
+  recognition.onend = () => {
+    setIsRecording(false);
+
+    // 🔥 CRITICAL MOBILE FIX: auto-restart safely
+    setTimeout(() => {
+      try {
+        recognition.start();
+        setIsRecording(true);
+      } catch (e) {
+        // ignore silent restart failures
+      }
+    }, 250);
+  };
+}, []);
 
   // ---------------- CONTROLS ----------------
   const toggleRecording = () => {
