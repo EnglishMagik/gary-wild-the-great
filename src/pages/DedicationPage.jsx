@@ -11,7 +11,6 @@ export default function DedicationPage() {
       ? dedication
       : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  // Adjusting PAD to help center the content area within the leather borders
   const PAD = '5vw'
 
   return (
@@ -34,15 +33,16 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        maxWidth: '1100px',
+        maxWidth: '1200px',
         margin: '0 auto',
-        paddingLeft: '6vw', // Nudges the entire inner content (Image + Text) to the RIGHT[cite: 1, 2]
-        gap: '4rem',
+        gap: '4rem', // Space between image and text
+        paddingLeft: '80px', // Nudges the entire group to the RIGHT
       }}>
 
-        {/* LEFT — IMAGE (Nudged Right) */}
+        {/* LEFT — IMAGE (Fixed width like your version 1) */}
         <div style={{
           flex: '0 0 340px',
+          maxWidth: '340px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -93,7 +93,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT (Nudged Right and Down) */}
+        {/* RIGHT — TEXT (Nudged RIGHT and DOWN) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -101,8 +101,8 @@ export default function DedicationPage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.8rem',
-          paddingLeft: '2vw', // Nudges the text a bit more to the RIGHT[cite: 1, 2]
-          marginTop: '4vh',    // Pushes the text a bit more DOWN[cite: 1, 2]
+          paddingLeft: '40px', // Nudges text further RIGHT
+          paddingTop: '60px',  // Nudges text DOWN
         }}>
 
           <div style={{
@@ -158,7 +158,6 @@ export default function DedicationPage() {
             ENTER
           </button>
         </div>
-
       </div>
     </div>
   )
