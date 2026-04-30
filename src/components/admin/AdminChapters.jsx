@@ -105,7 +105,10 @@ export default function AdminChapters() {
       <div style={{ marginTop: '1.5rem' }}>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <button className="btn-primary" onClick={handleAddChapter}>
+          <button className="btn-primary" onClick={() => {
+  const title = prompt("Chapter title?");
+  if (title) addChapter(title);
+}}>
             + Add Chapter
           </button>
 
