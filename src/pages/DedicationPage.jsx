@@ -31,24 +31,23 @@ export default function DedicationPage() {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         width: '100%',
         maxWidth: '1200px',
         margin: '0 auto',
-        gap: '3vw',
+        gap: '2rem',
       }}>
 
         {/* LEFT — IMAGE */}
-        <div style={{
-          flex: '0 0 340px',
-          maxWidth: '340px',
-          minWidth: '280px',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
+       <div style={{
+  flex: '0 0 340px',
+  maxWidth: '340px',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+}}>
 
           <div style={{
             width: '100%',
