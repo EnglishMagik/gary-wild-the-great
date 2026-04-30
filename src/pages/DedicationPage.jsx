@@ -11,7 +11,8 @@ export default function DedicationPage() {
       ? dedication
       : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  const PAD = '10vw' // Increased padding to keep content inside the frame window
+  // Adjusting PAD to help center the content area within the leather borders
+  const PAD = '5vw'
 
   return (
     <div style={{
@@ -33,14 +34,15 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        maxWidth: '900px', // Constrained to fit better inside the leather opening
+        maxWidth: '1100px',
         margin: '0 auto',
-        gap: '2rem',
+        paddingLeft: '6vw', // Nudges the entire inner content (Image + Text) to the RIGHT[cite: 1, 2]
+        gap: '4rem',
       }}>
 
-        {/* LEFT HALF — IMAGE AND SUBTITLE */}
+        {/* LEFT — IMAGE (Nudged Right) */}
         <div style={{
-          flex: 1, // Takes up exactly half the space
+          flex: '0 0 340px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -48,7 +50,7 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '300px',
+            maxWidth: '320px',
             aspectRatio: '1 / 1',
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -91,15 +93,16 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT HALF — TEXT CONTENT */}
+        {/* RIGHT — TEXT (Nudged Right and Down) */}
         <div style={{
-          flex: 1, // Takes up the other half of the space
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.8rem',
-          paddingLeft: '2rem' // Provides breathing room between image and text
+          paddingLeft: '2vw', // Nudges the text a bit more to the RIGHT[cite: 1, 2]
+          marginTop: '4vh',    // Pushes the text a bit more DOWN[cite: 1, 2]
         }}>
 
           <div style={{
@@ -112,7 +115,7 @@ export default function DedicationPage() {
           </div>
 
           <div style={{
-            width: '80%',
+            width: '70%',
             height: '1px',
             background: 'rgba(90,58,24,0.2)',
           }} />
@@ -121,7 +124,7 @@ export default function DedicationPage() {
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.85rem, 1.3vw, 1.1rem)',
+            fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
             color: '#3a2010',
             textAlign: 'left',
             lineHeight: 1.8,
@@ -131,7 +134,7 @@ export default function DedicationPage() {
           </div>
 
           <div style={{
-            width: '80%',
+            width: '70%',
             height: '1px',
             background: 'rgba(90,58,24,0.2)',
           }} />
@@ -139,11 +142,11 @@ export default function DedicationPage() {
           <button
             onClick={() => navigate('/contents')}
             style={{
-              marginTop: '1rem',
+              marginTop: '0.5rem',
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
-              padding: '0.4rem 2rem',
+              padding: '0.3rem 1.5rem',
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
               letterSpacing: '0.2em',
