@@ -36,22 +36,23 @@ export default function DedicationPage() {
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        // Task 2: Move image slightly right by increasing left padding
-        paddingLeft: '360px', 
+        // Shifted whole assembly slightly left by reducing this padding
+        paddingLeft: '320px', 
       }}>
 
-        {/* LEFT — IMAGE (Task 1: Made slightly larger) */}
+        {/* LEFT — IMAGE (A FRACTION smaller and moved A FRACTION DOWN) */}
         <div style={{
-          flex: '0 0 280px', // Increased from 250px
-          maxWidth: '280px',
+          flex: '0 0 270px', // Fractionally smaller than 280px
+          maxWidth: '270px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          paddingTop: '20px', // Nudge fractionally down
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '260px', 
+            maxWidth: '250px', // Proportional reduction
             aspectRatio: '1 / 1', 
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -82,7 +83,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT & BUTTON */}
+        {/* RIGHT — TEXT & BUTTON UNIT (Moved a little to the left) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -90,11 +91,12 @@ export default function DedicationPage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.6rem', 
-          paddingTop: '40px', 
+          paddingTop: '40px',
+          marginLeft: '-20px', // Pulls the unit left toward the image
         }}>
 
-          {/* Task 4: Move text more right than button */}
-          <div style={{ paddingLeft: '80px' }}>
+          {/* Text block */}
+          <div style={{ paddingLeft: '50px' }}> {/* Reduced from 80px to move left */}
             <div style={{
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
@@ -120,8 +122,8 @@ export default function DedicationPage() {
             </div>
           </div>
 
-          {/* Task 3: Move button slightly right */}
-          <div style={{ paddingLeft: '40px', marginTop: '0.5rem' }}>
+          {/* Button block */}
+          <div style={{ paddingLeft: '10px', marginTop: '0.5rem' }}> {/* Reduced from 40px to move left */}
             <button
               onClick={() => navigate('/contents')}
               style={{
