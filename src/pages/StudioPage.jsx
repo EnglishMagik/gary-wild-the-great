@@ -23,7 +23,7 @@ export default function StudioPage() {
     textRef.current = text;
   }, [text]);
 
-  // ---------------- SAFE SPEECH RECOGNITION ----------------
+  // ---------------- SPEECH RECOGNITION (FIXED MOBILE DUPLICATION) ----------------
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -37,7 +37,7 @@ export default function StudioPage() {
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
-    let lastFinal = '';
+    const lastFinalRef = { current: '' };
 
     recognition.onresult = (event) => {
       let interim = '';
@@ -45,21 +45,22 @@ export default function StudioPage() {
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const t = event.results[i][0].transcript;
-
         if (!t) continue;
 
         if (event.results[i].isFinal) {
-          final += t + ' ';
+          const cleaned = t.trim();
+
+          if (cleaned && cleaned !== lastFinalRef.current) {
+            final += cleaned + ' ';
+            lastFinalRef.current = cleaned;
+          }
         } else {
           interim += t;
         }
       }
 
-      // 🚫 STOP DUPLICATION LOOP
-      if (final && final !== lastFinal) {
-        finalTranscriptRef.current += final;
-        lastFinal = final;
-      }
+      finalTranscriptRef.current =
+        finalTranscriptRef.current + final;
 
       setText(finalTranscriptRef.current + interim);
     };
@@ -84,6 +85,10 @@ export default function StudioPage() {
       setIsRecording(false);
       setStatus('✅ Recording stopped.');
     } else {
+      // 🔧 FIX: prevent mobile duplicate carry-over
+      finalTranscriptRef.current = '';
+      setText('');
+
       rec.start();
       setIsRecording(true);
       setStatus('🎤 Listening...');
@@ -160,10 +165,10 @@ export default function StudioPage() {
         flexDirection: 'column',
         gap: '10px',
         padding: '10px',
-        overflow: 'auto',   // ✅ FIX: no more hidden cutoff
+        overflow: 'auto',
       }}>
 
-        {/* controls */}
+        {/* RECORD BUTTON */}
         <button
           onClick={toggleRecording}
           style={{
@@ -177,7 +182,7 @@ export default function StudioPage() {
           {isRecording ? 'STOP' : 'RECORD'}
         </button>
 
-        {/* TEXTAREA (FIXED BIG INPUT SPACE) */}
+        {/* TEXT AREA */}
         <textarea
           value={text}
           onChange={(e) => {
@@ -187,7 +192,7 @@ export default function StudioPage() {
           placeholder="Speak or type..."
           style={{
             flex: 1,
-            minHeight: '300px',   // ✅ FIX: huge mobile buffer
+            minHeight: '300px',
             width: '100%',
             fontSize: '18px',
             padding: '12px',
@@ -195,11 +200,11 @@ export default function StudioPage() {
             color: '#fff',
             border: '1px solid #444',
             resize: 'none',
-            overflowY: 'auto',   // ✅ FIX
+            overflowY: 'auto',
           }}
         />
 
-        {/* chapter controls */}
+        {/* CHAPTER INPUT */}
         <input
           placeholder="Chapter name"
           value={newTitle}
@@ -222,6 +227,7 @@ export default function StudioPage() {
           <button onClick={handleDelete}>Delete</button>
         )}
 
+        {/* SAVE */}
         <button
           onClick={handleSave}
           style={{
