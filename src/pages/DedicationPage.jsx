@@ -39,10 +39,10 @@ export default function DedicationPage() {
         paddingLeft: '340px', 
       }}>
 
-        {/* LEFT — IMAGE (Back to 8/8) */}
+        {/* LEFT — IMAGE (Scaled to 7/8 size) */}
         <div style={{
-          flex: '0 0 320px',
-          maxWidth: '320px',
+          flex: '0 0 280px', // Reduced width from 320px to 280px (7/8)
+          maxWidth: '280px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -50,8 +50,8 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '300px',
-            aspectRatio: '1 / 1', // Back to 8/8 square ratio[cite: 1]
+            maxWidth: '262px', // Reduced proportionally (7/8 of 300px)
+            aspectRatio: '1 / 1', 
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
             borderRadius: '6px',
@@ -79,10 +79,9 @@ export default function DedicationPage() {
               />
             </div>
           </div>
-          {/* Removed text from under image[cite: 2] */}
         </div>
 
-        {/* RIGHT — TEXT & BUTTON (Moved slightly down) */}
+        {/* RIGHT — TEXT & BUTTON */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -91,7 +90,6 @@ export default function DedicationPage() {
           justifyContent: 'center',
           gap: '0.6rem', 
           paddingLeft: '20px',
-          // Increased top padding to nudge the whole group down
           paddingTop: '40px', 
         }}>
 
@@ -104,11 +102,7 @@ export default function DedicationPage() {
             ✦ ✦ ✦
           </div>
 
-          <div style={{
-            width: '70%',
-            height: '1px',
-            background: 'rgba(90,58,24,0.2)',
-          }} />
+          {/* Removed silver line */}
 
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
@@ -123,30 +117,32 @@ export default function DedicationPage() {
             {displayText}
           </div>
 
-          <div style={{
-            width: '70%',
-            height: '1px',
-            background: 'rgba(90,58,24,0.2)',
-          }} />
+          {/* Removed silver line */}
 
-          <button
-            onClick={() => navigate('/contents')}
-            style={{
-              marginTop: '0.2rem', 
-              background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
-              border: '1px solid rgba(180,180,180,0.8)',
-              borderRadius: '999px',
-              padding: '0.4rem 1.8rem', // Slightly wider for new text[cite: 2]
-              fontFamily: 'Cinzel, serif',
-              fontSize: '0.6rem',
-              letterSpacing: '0.15em',
-              color: '#2a2a2a',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            }}
-          >
-            MAKING LIFE MAGIC
-          </button>
+          <div style={{
+            display: 'flex',
+            width: '100%',
+            justifyContent: 'center', // Centralize the button
+            marginTop: '0.2rem',
+          }}>
+            <button
+              onClick={() => navigate('/contents')}
+              style={{
+                background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
+                border: '1px solid rgba(180,180,180,0.8)',
+                borderRadius: '999px',
+                padding: '0.4rem 1.8rem',
+                fontFamily: 'Cinzel, serif',
+                fontSize: '0.6rem',
+                letterSpacing: '0.15em',
+                color: '#2a2a2a',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              }}
+            >
+              MAKING LIFE MAGIC
+            </button>
+          </div>
         </div>
       </div>
     </div>
