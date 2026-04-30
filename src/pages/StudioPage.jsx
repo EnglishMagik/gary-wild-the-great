@@ -16,14 +16,14 @@ export default function StudioPage() {
   const deleteChapter = useBookStore((s) => s.deleteChapter);
 
   const recognitionRef = useRef(null);
-  const finalChunksRef = useRef([]); // 🔥 canonical storage
+  const finalTranscriptRef = useRef('');
   const textRef = useRef('');
 
   useEffect(() => {
     textRef.current = text;
   }, [text]);
 
-  // ---------------- SPEECH RECOGNITION (STABLE VERSION) ----------------
+  // ---------------- SPEECH RECOGNITION (FIXED MOBILE VERSION) ----------------
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -37,8 +37,20 @@ export default function StudioPage() {
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
+    // 🔥 prevents duplicate final chunk re-adding
+    let lastFinal = '';
+
+    const safeStart = () => {
+      try {
+        recognition.start();
+      } catch (e) {
+        // ignore "already started" errors
+      }
+    };
+
     recognition.onresult = (event) => {
       let interim = '';
+      let final = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const t = event.results[i][0].transcript;
@@ -47,19 +59,20 @@ export default function StudioPage() {
         const cleaned = t.trim();
 
         if (event.results[i].isFinal) {
-          // 🔥 HARD DEDUPE: only store unique final chunks
-          if (!finalChunksRef.current.includes(cleaned)) {
-            finalChunksRef.current.push(cleaned);
+          // 🔥 HARD DEDUPE (fix repeat issue)
+          if (cleaned !== lastFinal) {
+            final += cleaned + ' ';
+            lastFinal = cleaned;
           }
         } else {
           interim += cleaned + ' ';
         }
       }
 
-      // 🔥 rebuild text from truth source (NO APPENDING BUGS)
-      const finalText = finalChunksRef.current.join(' ');
+      finalTranscriptRef.current =
+        finalTranscriptRef.current + final;
 
-      setText(finalText + interim);
+      setText(finalTranscriptRef.current + interim);
     };
 
     recognition.onerror = () => {
@@ -67,8 +80,8 @@ export default function StudioPage() {
       setStatus('⚠️ Microphone error');
     };
 
-    // ❌ IMPORTANT FIX:
-    // DO NOT auto-restart (this causes repeats + mobile chaos)
+    // ❌ IMPORTANT:
+    // DO NOT auto-stop user session
     recognition.onend = () => {
       setIsRecording(false);
       setStatus('⏸ Paused (press RECORD to continue)');
@@ -85,8 +98,9 @@ export default function StudioPage() {
       setIsRecording(false);
       setStatus('✅ Recording stopped.');
     } else {
-      // 🔥 FULL RESET ON START
-      finalChunksRef.current = [];
+      // 🔥 FULL RESET (prevents carry-over + duplicates)
+      finalTranscriptRef.current = '';
+      textRef.current = '';
       setText('');
 
       try {
@@ -106,7 +120,7 @@ export default function StudioPage() {
     processVoiceInput(current, selectedId || null, newTitle || null);
 
     setText('');
-    finalChunksRef.current = [];
+    finalTranscriptRef.current = '';
     textRef.current = '';
     setNewTitle('');
     setSelectedId('');
@@ -172,7 +186,7 @@ export default function StudioPage() {
         overflow: 'auto',
       }}>
 
-        {/* RECORD */}
+        {/* RECORD BUTTON */}
         <button
           onClick={toggleRecording}
           style={{
@@ -186,12 +200,12 @@ export default function StudioPage() {
           {isRecording ? 'STOP' : 'RECORD'}
         </button>
 
-        {/* TEXT */}
+        {/* TEXT AREA */}
         <textarea
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            finalChunksRef.current = e.target.value ? [e.target.value] : [];
+            finalTranscriptRef.current = e.target.value;
           }}
           placeholder="Speak or type..."
           style={{
