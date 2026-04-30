@@ -145,11 +145,10 @@ export const useBookStore = create(
         let finalOutput = "";
 
         if (isMobileBlob) {
-          // If input is an audio blob from mobile, we must process it into text
           try {
-            // Note: Replace '/api/transcribe' with your actual transcription endpoint
             const formData = new FormData();
             formData.append('file', input, 'recording.wav');
+            // Ensure this endpoint matches your server setup
             const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
             const data = await response.json();
             finalOutput = data.text;
@@ -158,7 +157,6 @@ export const useBookStore = create(
             return;
           }
         } else {
-          // PC version simply uses the raw text string
           finalOutput = typeof input === 'string' ? input.trim() : "";
         }
 
@@ -173,7 +171,9 @@ export const useBookStore = create(
         }
 
         get().addPage(targetId, finalOutput);
-        return finalOutput;
+        
+        // This return is what allows StudioPage to show the text on your screen
+        return finalOutput; 
       },
 
       setDedication: (text) => set({ dedication: text }),

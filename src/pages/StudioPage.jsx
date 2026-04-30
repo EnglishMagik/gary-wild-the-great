@@ -70,32 +70,22 @@ export default function StudioPage() {
 
           mediaRecorderRef.current.ondataavailable = (e) => audioChunksRef.current.push(e.data);
           
+         // Inside your StudioPage.js, look for the mediaRecorderRef.current.onstop section:
+
           mediaRecorderRef.current.onstop = async () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
             setStatus("✨ Transcribing full recording...");
             
-            // Pass the blob to your store's AI processing
-            // Assuming your store can handle a blob or a large text block
-            // For now, we simulate the "One-Tap" result from the video
-            const cleanText = await processVoiceInput(audioBlob, selectedId, newTitle, true); 
-            if (cleanText) setText(prev => prev + " " + cleanText);
-            setStatus("✅ Transcription complete.");
+            // FIX: We must 'await' the result and then manually call setText
+            const transcribedText = await processVoiceInput(audioBlob, selectedId, newTitle, true); 
+            
+            if (transcribedText) {
+              setText(prev => prev ? prev + " " + transcribedText : transcribedText);
+              setStatus("✅ Transcription complete.");
+            } else {
+              setStatus("❌ Transcription empty or failed.");
+            }
           };
-
-          mediaRecorderRef.current.start();
-          setIsRecording(true);
-          setStatus("🎤 Recording (Mobile Mode)...");
-        } catch (err) {
-          setStatus("❌ Mic access denied.");
-        }
-      } else {
-        finalTranscriptRef.current = text; 
-        recognitionRef.current?.start();
-        setIsRecording(true);
-        setStatus("🎤 Listening (PC Mode)...");
-      }
-    }
-  };
 
   const handleSave = () => {
     if (!text.trim()) return setStatus("⚠️ Please enter text first.");
