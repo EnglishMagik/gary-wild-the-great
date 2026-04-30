@@ -36,13 +36,13 @@ export default function DedicationPage() {
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        paddingLeft: '340px', 
+        paddingLeft: '340px', // Original padding, this doesn't change
       }}>
 
-        {/* LEFT — IMAGE (Restored to 7/8 size) */}
+        {/* LEFT — IMAGE (Gary is now smaller) */}
         <div style={{
-          flex: '0 0 320px', // Restored width from 280px to 320px[cite: 1, 2]
-          maxWidth: '320px',
+          flex: '0 0 250px', // Reduced from 320px to 250px[cite: 1, 2]
+          maxWidth: '250px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -50,7 +50,7 @@ export default function DedicationPage() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '300px', // Adjusted proportionally to fit the 320px width[cite: 1, 2]
+            maxWidth: '230px', // Adjusted proportionally to fit the 250px width[cite: 1, 2]
             aspectRatio: '1 / 1', 
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -81,15 +81,15 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT & BUTTON */}
+        {/* RIGHT — TEXT & BUTTON (Everything LEFT aligned) */}
         <div style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center', // Changed from flex-start to horizontally center contents[cite: 1, 2]
+          alignItems: 'flex-start', // Force contents to the LEFT[cite: 1, 2]
           justifyContent: 'center',
           gap: '0.6rem', 
-          paddingRight: '60px', // Added some right padding for balance within the frame window[cite: 1, 2]
+          // paddingRight: '60px', // Removed the padding that was pushing things left [cite: 1, 2]
           paddingTop: '40px', 
         }}>
 
@@ -98,6 +98,7 @@ export default function DedicationPage() {
             fontSize: '0.6rem',
             color: '#8b6914',
             letterSpacing: '0.3em',
+            textAlign: 'left', // Ensure stars are left aligned[cite: 1, 2]
           }}>
             ✦ ✦ ✦
           </div>
@@ -108,37 +109,32 @@ export default function DedicationPage() {
             fontWeight: 'bold',
             fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
             color: '#3a2010',
-            textAlign: 'center', // Changed to center text within this column[cite: 1, 2]
+            textAlign: 'left', // Ensure text block is left aligned[cite: 1, 2]
             lineHeight: 1.8,
             whiteSpace: 'pre-line',
           }}>
             {displayText}
           </div>
 
-          <div style={{
-            display: 'flex',
-            width: '100%',
-            justifyContent: 'center', // Centralize the button[cite: 1, 2]
-            marginTop: '0.2rem',
-          }}>
-            <button
-              onClick={() => navigate('/contents')}
-              style={{
-                background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
-                border: '1px solid rgba(180,180,180,0.8)',
-                borderRadius: '999px',
-                padding: '0.4rem 1.8rem',
-                fontFamily: 'Cinzel, serif',
-                fontSize: '0.6rem',
-                letterSpacing: '0.15em',
-                color: '#2a2a2a',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}
-            >
-              MAKING LIFE MAGIC
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/contents')}
+            style={{
+              marginTop: '0.2rem',
+              // No 'justifyContent' here, button aligns according to its container's alignItems [cite: 1, 2]
+              background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
+              border: '1px solid rgba(180,180,180,0.8)',
+              borderRadius: '999px',
+              padding: '0.4rem 1.8rem',
+              fontFamily: 'Cinzel, serif',
+              fontSize: '0.6rem',
+              letterSpacing: '0.15em',
+              color: '#2a2a2a',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            }}
+          >
+            MAKING LIFE MAGIC
+          </button>
         </div>
       </div>
     </div>
