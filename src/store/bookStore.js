@@ -113,10 +113,10 @@ export const useBookStore = create(
             if (ch.id !== chapterId) return ch;
             const pages = [...ch.pages];
             const lastPage = pages[pages.length - 1];
-            if (lastPage && lastPage.text.length < 800) {
-              const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
-              return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
-            } else {
+if (lastPage && lastPage.text.length < 800) {
+  const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
+  return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
+} else {
               return {
                 ...ch,
                 pages: [...pages, { id: 'pg-' + Date.now(), text, media: [] }]
@@ -141,27 +141,9 @@ export const useBookStore = create(
         get().showToast("Changes saved.");
       },
 
-      processVoiceInput: async (input, chapterId = null, newChapterTitle = null, isMobileBlob = false) => {
-        let finalOutput = "";
-
-        if (isMobileBlob) {
-          try {
-            const formData = new FormData();
-            formData.append('file', input, 'recording.wav');
-            // Ensure this endpoint matches your server setup
-            const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
-            const data = await response.json();
-            finalOutput = data.text;
-          } catch (err) {
-            get().showToast("Transcription failed.");
-            return;
-          }
-        } else {
-          finalOutput = typeof input === 'string' ? input.trim() : "";
-        }
-
-        if (!finalOutput) return;
-
+      processVoiceInput: (rawText, chapterId = null, newChapterTitle = null) => {
+        const cleaned = rawText.trim();
+        if (!cleaned) return;
         let targetId = chapterId;
         if (newChapterTitle) {
           targetId = get().addChapter(newChapterTitle);
@@ -169,11 +151,7 @@ export const useBookStore = create(
           const chs = get().chapters;
           targetId = chs.length === 0 ? get().addChapter('Chapter One') : chs[chs.length - 1].id;
         }
-
-        get().addPage(targetId, finalOutput);
-        
-        // This return is what allows StudioPage to show the text on your screen
-        return finalOutput; 
+        get().addPage(targetId, cleaned);
       },
 
       setDedication: (text) => set({ dedication: text }),
