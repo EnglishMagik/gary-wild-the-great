@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useBookStore } from '../store/bookStore';
 
 export default function StudioPage() {
-  const navigate = useNavigate();
-
   const [text, setText] = useState('');
   const [status, setStatus] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -14,152 +11,113 @@ export default function StudioPage() {
   const chapters = useBookStore((s) => s.chapters);
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter = useBookStore((s) => s.deleteChapter);
-
+  
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
-  const textRef = useRef('');
-
-  useEffect(() => {
-    textRef.current = text;
-  }, [text]);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
 
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
+      recognitionRef.current.onresult = (event) => {
+        let interimTranscript = '';
+        let newlyFinalized = '';
 
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event) => {
-      let interimTranscript = '';
-      let newlyFinalizedText = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        
-        if (event.results[i].isFinal) {
-          // 🔥 Only add to the permanent record when it's 100% finished
-          newlyFinalizedText += transcript + ' ';
-        } else {
-          // This is the "thinking" text - we show it but don't SAVE it yet
-          interimTranscript += transcript;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcriptSnippet = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            // ONLY add to the permanent pile when the browser is 100% sure
+            newlyFinalized += transcriptSnippet + ' ';
+          } else {
+            // "Thinking" text stays temporary
+            interimTranscript += transcriptSnippet;
+          }
         }
-      }
+        
+        finalTranscriptRef.current += newlyFinalized;
+        // Screen = Everything saved so far + the current thinking
+        setText(finalTranscriptRef.current + interimTranscript);
+      };
 
-      finalTranscriptRef.current += newlyFinalizedText;
-      
-      // We show the permanent text PLUS the current thinking text
-      setText(finalTranscriptRef.current + interimTranscript);
-    };
-
-    recognition.onerror = (e) => {
-      if (e.error === 'no-speech') return;
-      setStatus('⚠️ Mic error');
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-      setStatus('⏸ Paused (Tap Record to continue)');
-    };
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+        // We do NOT clear the screen here. It stays so you can read it.
+        setStatus("⏸ Paused (Tap Record to continue)");
+      };
+    }
   }, []);
 
   const toggleRecording = () => {
-    const rec = recognitionRef.current;
-    if (!rec) return;
-
     if (isRecording) {
-      rec.stop();
+      recognitionRef.current?.stop();
       setIsRecording(false);
-      setStatus('✅ Recording stopped.');
+      setStatus("✅ Recording stopped.");
     } else {
-      // We keep existing text on screen for your autobiography
-      setStatus('🎤 Listening...');
+      // PICK UP WHERE YOU LEFT OFF
+      // This is the key: we don't clear finalTranscriptRef, we use what is already in text.
+      finalTranscriptRef.current = text; 
+      recognitionRef.current?.start();
       setIsRecording(true);
-      try {
-        rec.start();
-      } catch (e) {
-        console.error("Start error", e);
-      }
+      setStatus("🎤 Listening..."); 
     }
   };
 
   const handleSave = () => {
-    const current = textRef.current;
-    if (!current.trim()) return setStatus('⚠️ No text to save.');
-
-    processVoiceInput(current, selectedId || null, newTitle || null);
-
+    if (!text.trim()) return setStatus("⚠️ Please enter text first.");
+    processVoiceInput(text, selectedId, newTitle);
+    
+    // ONLY clear now that it's safe in the book
     setText('');
     finalTranscriptRef.current = '';
     setNewTitle('');
-    setSelectedId('');
-    setStatus('✅ Saved to Book!');
+    setStatus("✅ Saved! Check your Table of Contents.");
   };
 
   const handleDelete = () => {
-    if (selectedId && window.confirm('Delete chapter?')) {
+    if (!selectedId) return setStatus("⚠️ Select a chapter to delete.");
+    if (window.confirm("Permanently delete this chapter?")) {
       deleteChapter(selectedId);
       setSelectedId('');
+      setStatus("🗑️ Deleted.");
     }
   };
 
+  // UI remains exactly as your working old version
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', color: '#fff' }}>
-      <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', padding: '10px', background: '#222' }}>
-        {['COVER', 'CONTENTS', 'READ', 'WRITE'].map((label, idx) => (
-          <button 
-            key={label} 
-            onClick={() => navigate(['/', '/contents', '/reader', '/studio'][idx])}
-            style={{ padding: '8px 12px', background: label === 'WRITE' ? '#388E3C' : '#444', color: '#fff', border: 'none', borderRadius: '4px' }}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px', overflowY: 'auto' }}>
-        <button
-          onClick={toggleRecording}
-          style={{ padding: '20px', background: isRecording ? '#c0392b' : '#27ae60', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.2rem' }}
-        >
-          {isRecording ? 'STOP' : 'RECORD'}
+    <main style={{ padding: '10px', background: '#000', color: '#fff', height: '85vh', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button onClick={toggleRecording} style={{ flex: 1, padding: '12px', background: isRecording ? '#cc0000' : (text ? '#2ecc71' : '#222'), color: '#fff', border: '1px solid #d4af37', fontWeight: 'bold', borderRadius: '4px' }}>
+          {isRecording ? '⏹ STOP RECORDING' : '🎤 START RECORDING'}
         </button>
+      </div>
 
-        <textarea
-          value={text}
+      <div style={{ flex: '1', minHeight: '120px', border: '1px solid #d4af37', background: '#111', overflowY: 'auto' }}>
+        <textarea 
+          value={text} 
           onChange={(e) => {
             setText(e.target.value);
             finalTranscriptRef.current = e.target.value;
-          }}
-          placeholder="Continue your story..."
-          style={{ flex: 1, padding: '15px', fontSize: '18px', background: '#111', color: '#fff', border: '1px solid #333', borderRadius: '8px', resize: 'none' }}
+          }} 
+          placeholder="Continue your story here..."
+          style={{ width: '100%', height: '100%', background: 'transparent', color: '#fff', border: 'none', padding: '12px', fontSize: '18px', outline: 'none', resize: 'none', fontFamily: 'serif', lineHeight: '1.6' }}
         />
-
-        <input
-          placeholder="New Chapter Title"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          style={{ padding: '12px', borderRadius: '4px', border: '1px solid #333', background: '#222', color: '#fff' }}
-        />
-
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-          style={{ padding: '12px', borderRadius: '4px', background: '#222', color: '#fff' }}
-        >
-          <option value="">Add to existing chapter?</option>
-          {chapters.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
-        </select>
-
-        <button onClick={handleSave} style={{ padding: '15px', background: '#d4af37', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px' }}>SAVE WORK</button>
-        
-        {status && <p style={{ textAlign: 'center', color: '#d4af37' }}>{status}</p>}
       </div>
-    </div>
+
+      <div style={{ background: '#111', padding: '12px', border: '1px solid #333' }}>
+        <input placeholder="New Chapter Name..." value={newTitle} onChange={(e) => {setNewTitle(e.target.value); setSelectedId('');}} style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#222', color: '#fff', border: '1px solid #444' }} />
+        <select value={selectedId} onChange={(e) => {setSelectedId(e.target.value); setNewTitle('');}} style={{ width: '100%', padding: '10px', background: '#222', color: '#fff' }}>
+          <option value="">-- Add to / Select Chapter --</option>
+          {chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.title}</option>)}
+        </select>
+      </div>
+
+      <button onClick={handleSave} style={{ width: '100%', padding: '16px', background: '#d4af37', color: '#000', fontWeight: 'bold', border: 'none', fontSize: '18px', borderRadius: '4px' }}>
+        SAVE TO BOOK
+      </button>
+      {status && <p style={{ textAlign: 'center', color: '#d4af37', margin: '5px 0' }}>{status}</p>}
+    </main>
   );
 }
