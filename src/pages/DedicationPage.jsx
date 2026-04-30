@@ -36,11 +36,11 @@ export default function DedicationPage() {
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        // Pushes the entire group RIGHT to bring the image back inside the frame[cite: 1, 2]
-        paddingLeft: '180px', 
+        // Increased from 180px to 240px to nudge everything further RIGHT[cite: 1, 2]
+        paddingLeft: '240px', 
       }}>
 
-        {/* LEFT — IMAGE (Pulled further into the frame) */}
+        {/* LEFT — IMAGE */}
         <div style={{
           flex: '0 0 340px',
           maxWidth: '340px',
@@ -94,16 +94,16 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT (Moved Down and Right) */}
+        {/* RIGHT — TEXT */}
         <div style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
           justifyContent: 'center',
-          gap: '0.6rem', // Tighter gap to bring button up[cite: 1, 2]
-          paddingLeft: '60px', // Nudges text further RIGHT[cite: 1, 2]
-          paddingTop: '80px',  // Nudges text DOWN[cite: 1, 2]
+          gap: '0.6rem', 
+          paddingLeft: '60px', 
+          paddingTop: '80px',  
         }}>
 
           <div style={{
@@ -143,7 +143,7 @@ export default function DedicationPage() {
           <button
             onClick={() => navigate('/contents')}
             style={{
-              marginTop: '0.2rem', // Minimal margin to bring button UP
+              marginTop: '0.2rem', 
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
