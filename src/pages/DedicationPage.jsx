@@ -35,11 +35,12 @@ export default function DedicationPage() {
         width: '100%',
         maxWidth: '1200px',
         margin: '0 auto',
-        gap: '4rem', // Space between image and text
-        paddingLeft: '80px', // Nudges the entire group to the RIGHT
+        gap: '2rem',
+        // Pushes the entire group RIGHT to bring the image back inside the frame[cite: 1, 2]
+        paddingLeft: '180px', 
       }}>
 
-        {/* LEFT — IMAGE (Fixed width like your version 1) */}
+        {/* LEFT — IMAGE (Pulled further into the frame) */}
         <div style={{
           flex: '0 0 340px',
           maxWidth: '340px',
@@ -93,16 +94,16 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT (Nudged RIGHT and DOWN) */}
+        {/* RIGHT — TEXT (Moved Down and Right) */}
         <div style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
           justifyContent: 'center',
-          gap: '0.8rem',
-          paddingLeft: '40px', // Nudges text further RIGHT
-          paddingTop: '60px',  // Nudges text DOWN
+          gap: '0.6rem', // Tighter gap to bring button up[cite: 1, 2]
+          paddingLeft: '60px', // Nudges text further RIGHT[cite: 1, 2]
+          paddingTop: '80px',  // Nudges text DOWN[cite: 1, 2]
         }}>
 
           <div style={{
@@ -142,7 +143,7 @@ export default function DedicationPage() {
           <button
             onClick={() => navigate('/contents')}
             style={{
-              marginTop: '0.5rem',
+              marginTop: '0.2rem', // Minimal margin to bring button UP
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
