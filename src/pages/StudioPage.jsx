@@ -16,14 +16,14 @@ export default function StudioPage() {
   const deleteChapter = useBookStore((s) => s.deleteChapter);
 
   const recognitionRef = useRef(null);
-  const finalTranscriptRef = useRef('');
+  const finalChunksRef = useRef([]); // 🔥 canonical storage
   const textRef = useRef('');
 
   useEffect(() => {
     textRef.current = text;
   }, [text]);
 
-  // ---------------- SPEECH RECOGNITION (FIXED MOBILE VERSION) ----------------
+  // ---------------- SPEECH RECOGNITION (STABLE VERSION) ----------------
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -37,31 +37,29 @@ export default function StudioPage() {
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
-    // 🔥 session-only storage (prevents cross-session duplication)
-    let sessionFinal = '';
-
     recognition.onresult = (event) => {
       let interim = '';
-      let final = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const t = event.results[i][0].transcript;
         if (!t) continue;
 
+        const cleaned = t.trim();
+
         if (event.results[i].isFinal) {
-          final += t.trim() + ' ';
+          // 🔥 HARD DEDUPE: only store unique final chunks
+          if (!finalChunksRef.current.includes(cleaned)) {
+            finalChunksRef.current.push(cleaned);
+          }
         } else {
-          interim += t;
+          interim += cleaned + ' ';
         }
       }
 
-      // 🔥 ONLY ADD NEW FINAL TEXT
-      if (final) {
-        sessionFinal += final;
-      }
+      // 🔥 rebuild text from truth source (NO APPENDING BUGS)
+      const finalText = finalChunksRef.current.join(' ');
 
-      finalTranscriptRef.current = sessionFinal;
-      setText(sessionFinal + interim);
+      setText(finalText + interim);
     };
 
     recognition.onerror = () => {
@@ -70,9 +68,10 @@ export default function StudioPage() {
     };
 
     // ❌ IMPORTANT FIX:
-    // DO NOT auto-restart recognition on mobile
+    // DO NOT auto-restart (this causes repeats + mobile chaos)
     recognition.onend = () => {
       setIsRecording(false);
+      setStatus('⏸ Paused (press RECORD to continue)');
     };
   }, []);
 
@@ -86,8 +85,8 @@ export default function StudioPage() {
       setIsRecording(false);
       setStatus('✅ Recording stopped.');
     } else {
-      // 🔥 HARD RESET ON START (prevents carry-over + duplicates)
-      finalTranscriptRef.current = '';
+      // 🔥 FULL RESET ON START
+      finalChunksRef.current = [];
       setText('');
 
       try {
@@ -107,7 +106,7 @@ export default function StudioPage() {
     processVoiceInput(current, selectedId || null, newTitle || null);
 
     setText('');
-    finalTranscriptRef.current = '';
+    finalChunksRef.current = [];
     textRef.current = '';
     setNewTitle('');
     setSelectedId('');
@@ -192,7 +191,7 @@ export default function StudioPage() {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            finalTranscriptRef.current = e.target.value;
+            finalChunksRef.current = e.target.value ? [e.target.value] : [];
           }}
           placeholder="Speak or type..."
           style={{
