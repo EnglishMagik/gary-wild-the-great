@@ -36,8 +36,8 @@ export default function DedicationPage() {
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        // Increased from 180px to 240px to nudge everything further RIGHT[cite: 1, 2]
-        paddingLeft: '240px', 
+        // Nudging EVERYTHING further RIGHT to clear the left leather edge[cite: 1, 2]
+        paddingLeft: '300px', 
       }}>
 
         {/* LEFT — IMAGE */}
@@ -94,7 +94,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT */}
+        {/* RIGHT — TEXT (Nudged UP) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -103,7 +103,8 @@ export default function DedicationPage() {
           justifyContent: 'center',
           gap: '0.6rem', 
           paddingLeft: '60px', 
-          paddingTop: '80px',  
+          // Reduced from 80px to 30px to move text and button UP[cite: 1, 2]
+          paddingTop: '30px',  
         }}>
 
           <div style={{
