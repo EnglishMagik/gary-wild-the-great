@@ -11,7 +11,7 @@ export default function DedicationPage() {
       ? dedication
       : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  const PAD = '5vw'
+  const PAD = '10vw' // Increased padding to keep content inside the frame window
 
   return (
     <div style={{
@@ -33,32 +33,28 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        maxWidth: '1200px',
+        maxWidth: '900px', // Constrained to fit better inside the leather opening
         margin: '0 auto',
         gap: '2rem',
       }}>
 
-        {/* LEFT — IMAGE */}
-       <div style={{
-  flex: '0 0 340px',
-  maxWidth: '340px',
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-}}>
-
+        {/* LEFT HALF — IMAGE AND SUBTITLE */}
+        <div style={{
+          flex: 1, // Takes up exactly half the space
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
           <div style={{
             width: '100%',
-            maxWidth: '320px',
+            maxWidth: '300px',
             aspectRatio: '1 / 1',
             padding: '8px',
             background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
             borderRadius: '6px',
             boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
             boxSizing: 'border-box',
-            overflow: 'hidden',
           }}>
             <div style={{
               width: '100%',
@@ -67,7 +63,6 @@ export default function DedicationPage() {
               background: '#f5ead6',
               borderRadius: '4px',
               boxSizing: 'border-box',
-              overflow: 'hidden',
             }}>
               <img
                 src="/Magicat.jpg"
@@ -94,17 +89,17 @@ export default function DedicationPage() {
           }}>
             Making Life Magic
           </div>
-
         </div>
 
-        {/* RIGHT — TEXT */}
+        {/* RIGHT HALF — TEXT CONTENT */}
         <div style={{
-          flex: 1,
+          flex: 1, // Takes up the other half of the space
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.8rem',
+          paddingLeft: '2rem' // Provides breathing room between image and text
         }}>
 
           <div style={{
@@ -117,7 +112,7 @@ export default function DedicationPage() {
           </div>
 
           <div style={{
-            width: '70%',
+            width: '80%',
             height: '1px',
             background: 'rgba(90,58,24,0.2)',
           }} />
@@ -126,7 +121,7 @@ export default function DedicationPage() {
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
+            fontSize: 'clamp(0.85rem, 1.3vw, 1.1rem)',
             color: '#3a2010',
             textAlign: 'left',
             lineHeight: 1.8,
@@ -136,7 +131,7 @@ export default function DedicationPage() {
           </div>
 
           <div style={{
-            width: '70%',
+            width: '80%',
             height: '1px',
             background: 'rgba(90,58,24,0.2)',
           }} />
@@ -144,11 +139,11 @@ export default function DedicationPage() {
           <button
             onClick={() => navigate('/contents')}
             style={{
-              marginTop: '0.5rem',
+              marginTop: '1rem',
               background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
               border: '1px solid rgba(180,180,180,0.8)',
               borderRadius: '999px',
-              padding: '0.3rem 1.5rem',
+              padding: '0.4rem 2rem',
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
               letterSpacing: '0.2em',
@@ -159,7 +154,6 @@ export default function DedicationPage() {
           >
             ENTER
           </button>
-
         </div>
 
       </div>
