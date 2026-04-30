@@ -23,81 +23,58 @@ export default function StudioPage() {
     textRef.current = text;
   }, [text]);
 
-  // ---------------- SPEECH RECOGNITION (FIXED MOBILE DUPLICATION) ----------------
-useEffect(() => {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+  // ---------------- SPEECH RECOGNITION (FIXED MOBILE VERSION) ----------------
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) return;
+    if (!SpeechRecognition) return;
 
-  const recognition = new SpeechRecognition();
-  recognitionRef.current = recognition;
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
 
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
 
-  // 🔥 STRONG DEDUPE BUFFER (last N chunks)
-  const recentFinals = [];
+    // 🔥 session-only storage (prevents cross-session duplication)
+    let sessionFinal = '';
 
-  const isDuplicate = (text) => {
-    const cleaned = text.trim();
-    return recentFinals.includes(cleaned);
-  };
+    recognition.onresult = (event) => {
+      let interim = '';
+      let final = '';
 
-  const pushFinal = (text) => {
-    const cleaned = text.trim();
-    recentFinals.push(cleaned);
-    if (recentFinals.length > 20) recentFinals.shift();
-  };
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (!t) continue;
 
-  recognition.onresult = (event) => {
-    let interim = '';
-    let final = '';
-
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript;
-
-      if (!t) continue;
-
-      if (event.results[i].isFinal) {
-        const cleaned = t.trim();
-
-        // 🔥 HARD BLOCK DUPLICATES (mobile fix)
-        if (!isDuplicate(cleaned)) {
-          final += cleaned + ' ';
-          pushFinal(cleaned);
+        if (event.results[i].isFinal) {
+          final += t.trim() + ' ';
+        } else {
+          interim += t;
         }
-      } else {
-        interim += t;
       }
-    }
 
-    finalTranscriptRef.current =
-      finalTranscriptRef.current + final;
-
-    setText(finalTranscriptRef.current + interim);
-  };
-
-  recognition.onerror = () => {
-    setIsRecording(false);
-    setStatus('⚠️ Microphone error');
-  };
-
-  recognition.onend = () => {
-    setIsRecording(false);
-
-    // 🔥 CRITICAL MOBILE FIX: auto-restart safely
-    setTimeout(() => {
-      try {
-        recognition.start();
-        setIsRecording(true);
-      } catch (e) {
-        // ignore silent restart failures
+      // 🔥 ONLY ADD NEW FINAL TEXT
+      if (final) {
+        sessionFinal += final;
       }
-    }, 250);
-  };
-}, []);
+
+      finalTranscriptRef.current = sessionFinal;
+      setText(sessionFinal + interim);
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+      setStatus('⚠️ Microphone error');
+    };
+
+    // ❌ IMPORTANT FIX:
+    // DO NOT auto-restart recognition on mobile
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+  }, []);
 
   // ---------------- CONTROLS ----------------
   const toggleRecording = () => {
@@ -109,13 +86,17 @@ useEffect(() => {
       setIsRecording(false);
       setStatus('✅ Recording stopped.');
     } else {
-      // 🔧 FIX: prevent mobile duplicate carry-over
+      // 🔥 HARD RESET ON START (prevents carry-over + duplicates)
       finalTranscriptRef.current = '';
       setText('');
 
-      rec.start();
-      setIsRecording(true);
-      setStatus('🎤 Listening...');
+      try {
+        rec.start();
+        setIsRecording(true);
+        setStatus('🎤 Listening...');
+      } catch (e) {
+        console.log('start error:', e);
+      }
     }
   };
 
@@ -192,7 +173,7 @@ useEffect(() => {
         overflow: 'auto',
       }}>
 
-        {/* RECORD BUTTON */}
+        {/* RECORD */}
         <button
           onClick={toggleRecording}
           style={{
@@ -206,7 +187,7 @@ useEffect(() => {
           {isRecording ? 'STOP' : 'RECORD'}
         </button>
 
-        {/* TEXT AREA */}
+        {/* TEXT */}
         <textarea
           value={text}
           onChange={(e) => {
