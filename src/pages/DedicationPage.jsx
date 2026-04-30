@@ -30,25 +30,28 @@ export default function DedicationPage() {
       <div style={{
         display: 'flex',
         flexDirection: 'row',
-        alignItems: 'center', 
+        // Move assembly UP: changed from center to flex-start and added top padding[cite: 1, 2]
+        alignItems: 'flex-start', 
         justifyContent: 'center',
         width: '100%',
         maxWidth: '1200px',
         margin: '0 auto',
         gap: '2rem',
-        // Task 2: Move image assembly slightly right 
-        paddingLeft: '350px', 
+        paddingTop: '160px', 
+        // Move assembly LEFT: reduced paddingLeft from 350px[cite: 1, 2]
+        paddingLeft: '330px', 
       }}>
 
-        {/* LEFT — IMAGE (Task 2: "A less of a little smaller") */}
+        {/* LEFT — IMAGE (Size Kept Same) */}
         <div style={{
-          flex: '0 0 265px', // Smaller than 275px, but larger than the previous 250px[cite: 1, 2]
+          flex: '0 0 265px', 
           maxWidth: '265px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          paddingTop: '20px', 
+          // Reduced top padding to help move it UP[cite: 1, 2]
+          paddingTop: '10px', 
         }}>
           <div style={{
             width: '100%',
@@ -83,7 +86,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT & BUTTON UNIT (Task 1: Unit to the right) */}
+        {/* RIGHT — TEXT & BUTTON UNIT (Size Kept Same) */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -91,12 +94,13 @@ export default function DedicationPage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '0.6rem', 
-          paddingTop: '40px',
-          // Neutralized the negative margin to move the whole unit right[cite: 1, 2]
-          marginLeft: '10px', 
+          // Move UP: reduced from 40px[cite: 1, 2]
+          paddingTop: '25px',
+          // Move LEFT: reduced from 10px[cite: 1, 2]
+          marginLeft: '0px', 
         }}>
 
-          {/* Text block nudged right */}
+          {/* Text block (Relative positions kept same) */}
           <div style={{ paddingLeft: '70px' }}> 
             <div style={{
               fontFamily: 'Cinzel, serif',
@@ -123,7 +127,7 @@ export default function DedicationPage() {
             </div>
           </div>
 
-          {/* Button block nudged right */}
+          {/* Button block (Relative positions kept same) */}
           <div style={{ paddingLeft: '30px', marginTop: '0.5rem' }}> 
             <button
               onClick={() => navigate('/contents')}
