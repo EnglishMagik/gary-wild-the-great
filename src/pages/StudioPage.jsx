@@ -1,151 +1,418 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useBookStore } from '../store/bookStore';
 
+// Detect mobile once at module level
+const isMobile = () => window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
 export default function StudioPage() {
-  const navigate = useNavigate();
+  const [text, setText] = useState('');
   const [status, setStatus] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingType, setRecordingType] = useState('audio'); // 'audio' or 'video'
   const [newTitle, setNewTitle] = useState('');
   const [selectedId, setSelectedId] = useState('');
-  const [mediaPreview, setMediaPreview] = useState(null);
-  const [seconds, setSeconds] = useState(0);
+  const [mobile, setMobile] = useState(isMobile());
 
   const chapters = useBookStore((s) => s.chapters);
-  const addMediaPage = useBookStore((s) => s.addMediaPage);
+  const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter = useBookStore((s) => s.deleteChapter);
 
-  const mediaRecorder = useRef(null);
-  const timerInterval = useRef(null);
-  const chunks = useRef([]);
-  const streamRef = useRef(null);
-  const videoRef = useRef(null);
+  const recognitionRef = useRef(null);
+  // ─── THE FIX: persistent store of all confirmed (final) text ───
+  // This ref survives across every onresult event, preventing the
+  // "repeat lines" bug where each event resets finalTranscript to ''
+  const confirmedTextRef = useRef('');
 
-  // Clean up streams on unmount
   useEffect(() => {
-    return () => {
-      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-      if (timerInterval.current) clearInterval(timerInterval.current);
-    };
+    const handleResize = () => setMobile(isMobile());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const startRecording = async (type) => {
-    try {
-      setRecordingType(type);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: true, 
-        video: type === 'video' 
-      });
-      
-      streamRef.current = stream;
-      if (type === 'video' && videoRef.current) {
-        videoRef.current.srcObject = stream;
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setStatus("❌ Speech recognition not supported in this browser. Try Chrome.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    // ─── CONTINUOUS: keeps listening through pauses (critical for mobile) ───
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+
+      // Loop from resultIndex (only new results, not re-processing old ones)
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const snippet = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+          // Append confirmed text to the persistent ref with a space
+          confirmedTextRef.current += snippet + ' ';
+        } else {
+          // Build interim preview (not saved yet)
+          interimTranscript += snippet;
+        }
       }
 
-      mediaRecorder.current = new MediaRecorder(stream);
-      chunks.current = [];
+      // Show confirmed text + live preview of what's being said now
+      setText(confirmedTextRef.current + interimTranscript);
+    };
 
-      mediaRecorder.current.ondataavailable = (e) => chunks.current.push(e.data);
-      mediaRecorder.current.onstop = () => {
-        const mimeType = type === 'video' ? 'video/mp4' : 'audio/wav';
-        const blob = new Blob(chunks.current, { type: mimeType });
-        setMediaPreview(URL.createObjectURL(blob));
-      };
+    recognition.onerror = (event) => {
+      // 'no-speech' is normal on mobile — don't show as error
+      if (event.error !== 'no-speech') {
+        setStatus(`⚠️ Mic error: ${event.error}`);
+      }
+      setIsRecording(false);
+    };
 
-      mediaRecorder.current.start();
+    recognition.onend = () => {
+      // On mobile, continuous mode can still end unexpectedly.
+      // Auto-restart if the user hasn't deliberately stopped.
+      if (recognitionRef.current?._shouldBeRecording) {
+        try { recognition.start(); } catch (e) { /* already started */ }
+      } else {
+        setIsRecording(false);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognitionRef.current._shouldBeRecording = false;
+  }, []);
+
+  const startRecording = () => {
+    // Sync confirmed ref with whatever is already in the textarea
+    // so the user can keep adding to existing text
+    confirmedTextRef.current = text ? text.trimEnd() + ' ' : '';
+    recognitionRef.current._shouldBeRecording = true;
+    try {
+      recognitionRef.current?.start();
       setIsRecording(true);
-      setSeconds(0);
-      timerInterval.current = setInterval(() => setSeconds(s => s + 1), 1000);
-      setStatus(`🎥 Recording ${type}...`);
-    } catch (err) {
-      setStatus("❌ Camera/Mic access denied.");
+      setStatus("🎤 Listening… speak now");
+    } catch (e) {
+      setStatus("⚠️ Could not start mic. Tap again.");
     }
   };
 
   const stopRecording = () => {
-    mediaRecorder.current?.stop();
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    clearInterval(timerInterval.current);
+    recognitionRef.current._shouldBeRecording = false;
+    recognitionRef.current?.stop();
     setIsRecording(false);
-    setStatus("✅ Recording finished. Preview below.");
+    setStatus("✅ Recording stopped. Edit above or save.");
   };
 
   const handleSave = () => {
-    if (!mediaPreview) return setStatus("⚠️ Record something first.");
-    
-    // Determine target chapter
-    let targetId = selectedId;
-    if (newTitle.trim()) {
-      targetId = useBookStore.getState().addChapter(newTitle);
-    } else if (!targetId) {
-      targetId = chapters.length > 0 ? chapters[chapters.length - 1].id : useBookStore.getState().addChapter('New Chapter');
-    }
-
-    addMediaPage(targetId, mediaPreview, recordingType);
-    setMediaPreview(null);
+    if (!text.trim()) return setStatus("⚠️ Nothing to save yet.");
+    processVoiceInput(text, selectedId || null, newTitle.trim() || null);
+    setText('');
+    confirmedTextRef.current = '';
     setNewTitle('');
     setSelectedId('');
-    setStatus("✅ Saved to Book!");
+    setStatus("✅ Saved to your book!");
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
-      <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', background: '#2c2c2c', padding: '8px' }}>
-        {['COVER', 'CONTENTS', 'READ', '✎ WRITE', '⚙ ADMIN'].map((label, i) => (
-          <button key={i} onClick={() => navigate(label === '✎ WRITE' ? '/studio' : label.toLowerCase())}
-            style={{ padding: '4px 12px', background: label.includes('WRITE') ? '#388E3C' : '#e0e0e0', borderRadius: '3px', border: 'none', fontWeight: 'bold' }}>
-            {label}
-          </button>
-        ))}
-      </nav>
+  const handleDelete = () => {
+    if (!selectedId) return setStatus("⚠️ Select a chapter to delete.");
+    if (!window.confirm("Delete this entire chapter and all its pages?")) return;
+    deleteChapter(selectedId);
+    setSelectedId('');
+    setStatus("🗑️ Chapter deleted.");
+  };
 
-      <main style={{ flex: 1, padding: '15px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        
-        {/* MOBILE RECORDING CONTROLS */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {!isRecording ? (
-            <>
-              <button onClick={() => startRecording('audio')} style={{ flex: 1, padding: '15px', background: '#222', color: '#d4af37', border: '2px solid #d4af37', borderRadius: '8px', fontWeight: 'bold' }}>🎤 AUDIO</button>
-              <button onClick={() => startRecording('video')} style={{ flex: 1, padding: '15px', background: '#222', color: '#d4af37', border: '2px solid #d4af37', borderRadius: '8px', fontWeight: 'bold' }}>🎥 VIDEO</button>
-            </>
-          ) : (
-            <button onClick={stopRecording} style={{ flex: 1, padding: '15px', background: '#cc0000', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
-              ⏹ STOP RECORDING ({seconds}s)
-            </button>
-          )}
+  // ─────────────────────────────────────────────
+  //  MOBILE LAYOUT  (large, finger-friendly)
+  // ─────────────────────────────────────────────
+  if (mobile) {
+    return (
+      <main style={{
+        padding: '16px',
+        background: '#0d0a06',
+        color: '#f5ead6',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px',
+        boxSizing: 'border-box',
+        fontFamily: 'Crimson Text, Georgia, serif',
+      }}>
+
+        {/* TITLE */}
+        <div style={{ textAlign: 'center', paddingTop: '8px' }}>
+          <div style={{ fontFamily: 'Cinzel, serif', fontSize: '1rem', color: '#c9a84c', letterSpacing: '0.2em' }}>
+            WRITE YOUR STORY
+          </div>
         </div>
 
-        {/* LIVE CAMERA / PREVIEW AREA */}
-        <div style={{ flex: 1, background: '#111', border: '1px solid #d4af37', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-          {isRecording && recordingType === 'video' && (
-            <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          )}
-          {mediaPreview && (
-            recordingType === 'video' 
-              ? <video src={mediaPreview} controls style={{ width: '100%', maxHeight: '100%' }} />
-              : <audio src={mediaPreview} controls style={{ width: '80%' }} />
-          )}
-          {!isRecording && !mediaPreview && <p style={{ color: '#444' }}>Select a mode to begin</p>}
-        </div>
+        {/* MIC BUTTON — big, central, unmissable */}
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
+          style={{
+            padding: '20px',
+            fontSize: '1.3rem',
+            fontWeight: 'bold',
+            fontFamily: 'Cinzel, serif',
+            background: isRecording
+              ? 'linear-gradient(135deg, #8b0000, #cc0000)'
+              : 'linear-gradient(135deg, #1a5c1a, #2ecc71)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            boxShadow: isRecording
+              ? '0 0 20px rgba(204,0,0,0.5)'
+              : '0 0 20px rgba(46,204,113,0.4)',
+            transition: 'all 0.2s',
+            letterSpacing: '0.1em',
+          }}
+        >
+          {isRecording ? '⏹  STOP RECORDING' : '🎤  START RECORDING'}
+        </button>
 
-        {/* CHAPTER SELECTION */}
-        <div style={{ background: '#111', padding: '12px', borderRadius: '8px', border: '1px solid #333' }}>
-          <input placeholder="New Chapter Title..." value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
-            style={{ width: '100%', padding: '12px', background: '#222', color: '#fff', border: '1px solid #444', marginBottom: '10px', boxSizing: 'border-box' }} />
-          <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}
-            style={{ width: '100%', padding: '12px', background: '#222', color: '#fff', border: '1px solid #444' }}>
-            <option value="">-- Add to Existing Chapter --</option>
-            {chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.title}</option>)}
+        {/* STATUS */}
+        {status && (
+          <div style={{
+            textAlign: 'center',
+            color: isRecording ? '#2ecc71' : '#c9a84c',
+            fontSize: '0.95rem',
+            fontStyle: 'italic',
+            minHeight: '1.4rem',
+          }}>
+            {status}
+          </div>
+        )}
+
+        {/* TEXT AREA — editable, scrollable */}
+        <textarea
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            confirmedTextRef.current = e.target.value;
+          }}
+          placeholder="Your words will appear here as you speak… or type directly."
+          style={{
+            flex: 1,
+            minHeight: '220px',
+            background: '#1a1208',
+            color: '#f5ead6',
+            border: '1px solid rgba(201,168,76,0.4)',
+            borderRadius: '8px',
+            padding: '14px',
+            fontSize: '1.15rem',
+            lineHeight: '1.75',
+            fontFamily: 'Crimson Text, Georgia, serif',
+            resize: 'vertical',
+            outline: 'none',
+          }}
+        />
+
+        {/* CHAPTER SECTION */}
+        <div style={{
+          background: '#1a1208',
+          border: '1px solid rgba(201,168,76,0.25)',
+          borderRadius: '8px',
+          padding: '14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}>
+          <div style={{ fontFamily: 'Cinzel, serif', fontSize: '0.72rem', color: '#c9a84c', letterSpacing: '0.15em' }}>
+            SAVE TO CHAPTER
+          </div>
+
+          <input
+            placeholder="Create new chapter (type name here)…"
+            value={newTitle}
+            onChange={(e) => { setNewTitle(e.target.value); setSelectedId(''); }}
+            style={{
+              padding: '12px',
+              background: '#0d0a06',
+              color: '#f5ead6',
+              border: '1px solid rgba(201,168,76,0.35)',
+              borderRadius: '6px',
+              fontSize: '1rem',
+              fontFamily: 'Crimson Text, Georgia, serif',
+              outline: 'none',
+            }}
+          />
+
+          <div style={{ textAlign: 'center', color: 'rgba(245,234,214,0.35)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+            — or add to existing —
+          </div>
+
+          <select
+            value={selectedId}
+            onChange={(e) => { setSelectedId(e.target.value); setNewTitle(''); }}
+            style={{
+              padding: '12px',
+              background: '#0d0a06',
+              color: '#f5ead6',
+              border: '1px solid rgba(201,168,76,0.35)',
+              borderRadius: '6px',
+              fontSize: '1rem',
+              fontFamily: 'Crimson Text, Georgia, serif',
+              outline: 'none',
+            }}
+          >
+            <option value="">— Select existing chapter —</option>
+            {chapters.map(ch => (
+              <option key={ch.id} value={ch.id}>{ch.title}</option>
+            ))}
           </select>
         </div>
 
-        <button onClick={handleSave} style={{ width: '100%', padding: '18px', background: '#d4af37', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', fontSize: '18px' }}>
+        {/* SAVE BUTTON */}
+        <button
+          onClick={handleSave}
+          style={{
+            padding: '18px',
+            background: 'linear-gradient(135deg, #8b6914, #c9a84c)',
+            color: '#0d0a06',
+            fontFamily: 'Cinzel, serif',
+            fontWeight: 'bold',
+            fontSize: '1.1rem',
+            letterSpacing: '0.15em',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(201,168,76,0.4)',
+          }}
+        >
           SAVE TO BOOK
         </button>
 
-        {status && <p style={{ textAlign: 'center', color: '#d4af37', margin: '0' }}>{status}</p>}
+        {/* DELETE (only shown if chapter selected) */}
+        {selectedId && (
+          <button
+            onClick={handleDelete}
+            style={{
+              padding: '14px',
+              background: 'transparent',
+              color: '#e74c3c',
+              border: '1px solid #e74c3c',
+              borderRadius: '8px',
+              fontFamily: 'Cinzel, serif',
+              fontSize: '0.8rem',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+            }}
+          >
+            🗑 DELETE SELECTED CHAPTER
+          </button>
+        )}
+
+        <div style={{ height: '20px' }} />
       </main>
-    </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  //  DESKTOP LAYOUT  (original black theme, unchanged aesthetically)
+  // ─────────────────────────────────────────────
+  return (
+    <main style={{
+      padding: '10px',
+      background: '#000',
+      color: '#fff',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
+      boxSizing: 'border-box',
+    }}>
+
+      {/* RECORD BUTTON */}
+      <button
+        onClick={isRecording ? stopRecording : startRecording}
+        style={{
+          padding: '14px',
+          background: isRecording ? '#cc0000' : '#2ecc71',
+          color: '#fff',
+          fontWeight: 'bold',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: '1rem',
+        }}
+      >
+        {isRecording ? '⏹ STOP RECORDING' : '🎤 START RECORDING'}
+      </button>
+
+      {/* STATUS */}
+      {status && (
+        <p style={{ margin: 0, color: '#d4af37', fontSize: '0.85rem', fontStyle: 'italic' }}>{status}</p>
+      )}
+
+      {/* SCROLLABLE TEXT BOX */}
+      <textarea
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          confirmedTextRef.current = e.target.value;
+        }}
+        placeholder="Speak or type your story here…"
+        style={{
+          flex: 1,
+          background: '#111',
+          color: '#fff',
+          border: '1px solid #444',
+          padding: '12px',
+          fontSize: '1rem',
+          fontFamily: 'serif',
+          lineHeight: '1.7',
+          resize: 'none',
+          outline: 'none',
+        }}
+      />
+
+      {/* CHAPTER MANAGEMENT */}
+      <div style={{ background: '#111', padding: '12px', border: '1px solid #333', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <input
+          placeholder="New Chapter Name…"
+          value={newTitle}
+          onChange={(e) => { setNewTitle(e.target.value); setSelectedId(''); }}
+          style={{ padding: '10px', background: '#222', color: '#fff', border: '1px solid #444', fontSize: '0.95rem' }}
+        />
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <select
+            value={selectedId}
+            onChange={(e) => { setSelectedId(e.target.value); setNewTitle(''); }}
+            style={{ flex: 1, padding: '10px', background: '#222', color: '#fff', border: '1px solid #444' }}
+          >
+            <option value="">— Add to / Select Chapter —</option>
+            {chapters.map(ch => (
+              <option key={ch.id} value={ch.id}>{ch.title}</option>
+            ))}
+          </select>
+          {selectedId && (
+            <button
+              onClick={handleDelete}
+              title="Delete Chapter"
+              style={{ background: '#441111', color: '#ff4d4d', border: '1px solid #ff4d4d', padding: '0 15px', cursor: 'pointer' }}
+            >
+              🗑️
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* SAVE */}
+      <button
+        onClick={handleSave}
+        style={{
+          padding: '16px',
+          background: '#d4af37',
+          color: '#000',
+          fontWeight: 'bold',
+          border: 'none',
+          fontSize: '1rem',
+          cursor: 'pointer',
+        }}
+      >
+        SAVE TO BOOK
+      </button>
+    </main>
   );
 }
