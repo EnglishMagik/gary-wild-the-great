@@ -2,226 +2,343 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useBookStore } from '../store/bookStore';
 import { useNavigate } from 'react-router-dom';
 
-const isMobile = () =>
-  window.innerWidth <= 768 ||
-  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-
 export default function StudioPage() {
-  const [text, setText] = useState('');
-  const [status, setStatus] = useState('');
+  const [text, setText]               = useState('');
+  const [status, setStatus]           = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [newTitle, setNewTitle]       = useState('');
+  const [selectedId, setSelectedId]   = useState('');
 
-  const [newTitle, setNewTitle] = useState('');
-  const [selectedId, setSelectedId] = useState('');
-
-  const [mobile, setMobile] = useState(() => isMobile());
-
-  const navigate = useNavigate();
-
-  const chapters = useBookStore((s) => s.chapters);
+  const navigate          = useNavigate();
+  const chapters          = useBookStore((s) => s.chapters);
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
+  const deleteChapter     = useBookStore((s) => s.deleteChapter);
 
   const recognitionRef = useRef(null);
 
-  // 🎤 speech engine state
-  const committedRef = useRef('');
-  const lastFinalRef = useRef('');
-  const restartLockRef = useRef(false);
-  const isTypingRef = useRef(false);
+  // ─── SALLY'S ARCHITECTURE ────────────────────────────────────────────────
+  // Each confirmed final phrase is pushed into segmentsRef as an immutable
+  // entry. We never merge, compare, or rewrite the buffer. The text box is
+  // just a view: segments joined + current interim. This eliminates replay
+  // duplication at the architecture level rather than trying to patch it.
+  // ─────────────────────────────────────────────────────────────────────────
+  const segmentsRef  = useRef([]);   // immutable append-only final phrases
+  const lastFinalRef = useRef('');   // exact-match guard: one duplicate block only
 
   useEffect(() => {
-    const onResize = () => setMobile(isMobile());
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setStatus('Speech not supported');
+      setStatus('❌ Speech recognition not supported. Use Chrome.');
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
+
+    // continuous = true: browser owns the session lifecycle.
+    // No manual restart = no Android context-replay duplication.
+    recognition.continuous     = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.lang           = 'en-US';
 
     recognition.onresult = (event) => {
       let interim = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
-        const raw = result[0].transcript;
+        const raw    = result[0].transcript;
         if (!raw) continue;
 
         const clean = raw.trim().replace(/\s+/g, ' ');
-        const normalized = clean.toLowerCase();
 
         if (result.isFinal) {
-          if (normalized === lastFinalRef.current) continue;
-          lastFinalRef.current = normalized;
+          // ONLY guard allowed: exact duplicate of the last final phrase
+          if (clean === lastFinalRef.current) continue;
+          lastFinalRef.current = clean;
 
-          const buffer = committedRef.current.toLowerCase().trim();
-
-          if (!buffer.endsWith(normalized)) {
-            committedRef.current =
-              (committedRef.current + ' ' + clean).trim() + ' ';
-          }
+          // IMMUTABLE APPEND — never merge, never rewrite
+          segmentsRef.current.push(clean);
         } else {
           interim += clean + ' ';
         }
       }
 
-      const finalText = (committedRef.current + interim).trim();
-
-      if (!isTypingRef.current) {
-        setText(finalText);
-      }
+      // Text box is a read-only view of segments + live interim
+      setText([...segmentsRef.current, interim.trim()].filter(Boolean).join(' '));
     };
 
     recognition.onerror = (e) => {
-      if (e.error !== 'no-speech') setStatus(e.error);
-      setIsRecording(false);
+      // 'no-speech' fires during natural pauses — not a real error
+      if (e.error !== 'no-speech') {
+        setStatus(`⚠️ Mic error: ${e.error}`);
+        setIsRecording(false);
+      }
     };
 
+    // DO NOTHING on onend — no restart, no recovery, no loops.
     recognition.onend = () => {
-      if (!recognitionRef.current?._shouldBeRecording) {
-        setIsRecording(false);
-        return;
-      }
-
-      if (restartLockRef.current) return;
-      restartLockRef.current = true;
-
-      setTimeout(() => {
-        try {
-          if (recognitionRef.current?._shouldBeRecording) {
-            recognition.start();
-          }
-        } catch {}
-        restartLockRef.current = false;
-      }, 700);
+      setIsRecording(false);
     };
 
     recognitionRef.current = recognition;
   }, []);
 
-  // ---------------- RECORD ----------------
-
+  // ── Start ────────────────────────────────────────────────────────────────
   const startRecording = () => {
-    committedRef.current = text.trim() + ' ';
+    // If there is already text in the box (typed or previous session),
+    // seed it as the first segment so voice appends cleanly
+    segmentsRef.current = text.trim() ? [text.trim()] : [];
     lastFinalRef.current = '';
-    restartLockRef.current = false;
 
-    recognitionRef.current._shouldBeRecording = true;
-
-    recognitionRef.current.start();
-    setIsRecording(true);
-    setStatus('🎤 Listening...');
+    try {
+      recognitionRef.current?.start();
+      setIsRecording(true);
+      setStatus('🎤 Listening…');
+    } catch (e) {
+      setStatus('⚠️ Could not start mic. Tap again.');
+    }
   };
 
+  // ── Stop ─────────────────────────────────────────────────────────────────
   const stopRecording = () => {
-    recognitionRef.current._shouldBeRecording = false;
-    recognitionRef.current?.stop();
+    try { recognitionRef.current?.stop(); } catch (_) {}
     setIsRecording(false);
-    setStatus('Stopped');
+    setStatus('✅ Recording stopped.');
   };
 
-  // ---------------- SAVE / PARSE ----------------
-
+  // ── Save ─────────────────────────────────────────────────────────────────
   const handleSave = () => {
-    if (!text.trim()) return;
+    const finalText = segmentsRef.current.join(' ').trim() || text.trim();
+    if (!finalText) return setStatus('⚠️ Nothing to save yet.');
 
-    /**
-     * KEY BUSINESS LOGIC:
-     * This is your "lesson parsing equivalent"
-     * → decides WHERE speech goes
-     */
     processVoiceInput(
-      text,
-      selectedId || null,
+      finalText,
+      newTitle.trim() ? null : (selectedId || null),
       newTitle.trim() || null
     );
 
-    setText('');
-    committedRef.current = '';
+    segmentsRef.current = [];
     lastFinalRef.current = '';
+    setText('');
     setNewTitle('');
     setSelectedId('');
-    setStatus('Saved to chapter');
+    setStatus('✅ Saved! Tap CONTENTS to see it.');
   };
 
-  // ---------------- UI ----------------
+  // ── Delete chapter ───────────────────────────────────────────────────────
+  const handleDelete = () => {
+    if (!selectedId) return setStatus('⚠️ Select a chapter to delete.');
+    if (window.confirm('Permanently delete this chapter and all its pages?')) {
+      deleteChapter(selectedId);
+      setSelectedId('');
+      setStatus('🗑️ Deleted.');
+    }
+  };
 
+  // ── UI ───────────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
+    <main style={{
+      padding: '10px',
+      background: '#0d0a06',
+      color: '#f5ead6',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
+      boxSizing: 'border-box',
+    }}>
 
-      {/* NAVIGATION */}
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button onClick={() => navigate('/')}>
-          ← Back to Contents
+      {/* TOP BAR */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button
+          onClick={() => navigate('/contents')}
+          style={{
+            padding: '8px 14px',
+            background: 'transparent',
+            color: '#c9a84c',
+            border: '1px solid #c9a84c',
+            borderRadius: '4px',
+            fontFamily: 'Cinzel, serif',
+            fontSize: '0.75rem',
+            letterSpacing: '0.1em',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ← CONTENTS
         </button>
-
-        <div>Studio</div>
+        <span style={{
+          flex: 1,
+          textAlign: 'center',
+          fontFamily: 'Cinzel, serif',
+          fontSize: '0.9rem',
+          color: '#c9a84c',
+          letterSpacing: '0.2em',
+        }}>
+          WRITING STUDIO
+        </span>
+        {/* Spacer to keep title centred */}
+        <div style={{ width: '90px' }} />
       </div>
+
+      {/* RECORD BUTTON */}
+      <button
+        onClick={isRecording ? stopRecording : startRecording}
+        style={{
+          padding: '16px',
+          background: isRecording
+            ? 'linear-gradient(135deg, #8b0000, #cc0000)'
+            : 'linear-gradient(135deg, #1a4a1a, #2ecc71)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          fontFamily: 'Cinzel, serif',
+          fontWeight: 'bold',
+          fontSize: '1rem',
+          letterSpacing: '0.1em',
+          cursor: 'pointer',
+          boxShadow: isRecording
+            ? '0 0 12px rgba(204,0,0,0.5)'
+            : '0 0 12px rgba(46,204,113,0.3)',
+        }}
+      >
+        {isRecording ? '⏹  STOP RECORDING' : '🎤  START RECORDING'}
+      </button>
 
       {/* STATUS */}
-      <p>{status}</p>
+      {status && (
+        <p style={{
+          textAlign: 'center',
+          color: '#c9a84c',
+          fontStyle: 'italic',
+          fontSize: '0.9rem',
+          margin: 0,
+        }}>
+          {status}
+        </p>
+      )}
 
       {/* TEXT AREA */}
-      <textarea
-        value={text}
-        onChange={(e) => {
-          isTypingRef.current = true;
-          setText(e.target.value);
-        }}
-        onBlur={() => (isTypingRef.current = false)}
-        style={{ width: '100%', height: 300 }}
-      />
-
-      {/* RECORD BUTTONS */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-        {!isRecording ? (
-          <button onClick={startRecording}>🎤 Start</button>
-        ) : (
-          <button onClick={stopRecording}>⏹ Stop</button>
-        )}
+      <div style={{
+        flex: 1,
+        minHeight: '200px',
+        border: '1px solid rgba(201,168,76,0.4)',
+        background: '#1a1208',
+        borderRadius: '6px',
+        overflow: 'hidden',
+      }}>
+        <textarea
+          value={text}
+          onChange={(e) => {
+            // Allow manual typing/editing.
+            // Re-seed segments so voice appends correctly after an edit.
+            setText(e.target.value);
+            segmentsRef.current = e.target.value ? [e.target.value] : [];
+          }}
+          placeholder="Speak or type your story here…"
+          style={{
+            width: '100%',
+            height: '100%',
+            minHeight: '200px',
+            background: 'transparent',
+            color: '#f5ead6',
+            border: 'none',
+            padding: '14px',
+            fontSize: '1.1rem',
+            outline: 'none',
+            resize: 'none',
+            fontFamily: 'Crimson Text, Georgia, serif',
+            lineHeight: '1.7',
+            boxSizing: 'border-box',
+          }}
+        />
       </div>
 
-      {/* CHAPTER SELECTION (CRITICAL UX) */}
-      <div style={{ marginTop: 20 }}>
+      {/* CHAPTER MANAGEMENT */}
+      <div style={{
+        background: '#1a1208',
+        padding: '12px',
+        border: '1px solid rgba(201,168,76,0.25)',
+        borderRadius: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}>
         <input
-          placeholder="New chapter title"
+          placeholder="New chapter title…"
           value={newTitle}
-          onChange={(e) => {
-            setNewTitle(e.target.value);
-            setSelectedId('');
+          onChange={(e) => { setNewTitle(e.target.value); setSelectedId(''); }}
+          style={{
+            padding: '10px',
+            background: '#0d0a06',
+            color: '#f5ead6',
+            border: '1px solid rgba(201,168,76,0.3)',
+            borderRadius: '4px',
+            fontSize: '1rem',
           }}
         />
 
-        <select
-          value={selectedId}
-          onChange={(e) => {
-            setSelectedId(e.target.value);
-            setNewTitle('');
-          }}
-        >
-          <option value="">Select existing chapter</option>
-          {chapters.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <select
+            value={selectedId}
+            onChange={(e) => { setSelectedId(e.target.value); setNewTitle(''); }}
+            style={{
+              flex: 1,
+              padding: '10px',
+              background: '#0d0a06',
+              color: '#f5ead6',
+              border: '1px solid rgba(201,168,76,0.3)',
+              borderRadius: '4px',
+              fontSize: '1rem',
+            }}
+          >
+            <option value="">— Or add to existing chapter —</option>
+            {chapters.map(ch => (
+              <option key={ch.id} value={ch.id}>{ch.title}</option>
+            ))}
+          </select>
+
+          {selectedId && (
+            <button
+              onClick={handleDelete}
+              title="Delete this chapter"
+              style={{
+                background: '#441111',
+                color: '#ff4d4d',
+                border: '1px solid #ff4d4d',
+                padding: '0 14px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+              }}
+            >
+              🗑️
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* SAVE */}
-      <button onClick={handleSave} style={{ marginTop: 20 }}>
-        Save to Chapter
+      {/* SAVE BUTTON */}
+      <button
+        onClick={handleSave}
+        disabled={!text.trim()}
+        style={{
+          padding: '16px',
+          background: text.trim()
+            ? 'linear-gradient(135deg, #8b6914, #c9a84c)'
+            : '#333',
+          color: text.trim() ? '#0d0a06' : '#666',
+          fontFamily: 'Cinzel, serif',
+          fontWeight: 'bold',
+          fontSize: '1.1rem',
+          letterSpacing: '0.1em',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: text.trim() ? 'pointer' : 'not-allowed',
+        }}
+      >
+        SAVE TO BOOK
       </button>
-    </div>
+
+    </main>
   );
 }
