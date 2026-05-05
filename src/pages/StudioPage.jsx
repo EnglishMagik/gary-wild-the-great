@@ -14,10 +14,10 @@ export default function StudioPage() {
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter     = useBookStore((s) => s.deleteChapter);
 
-  const recognitionRef = useRef(null);
-  const segmentsRef    = useRef([]);   // confirmed final phrases only
-  const lastFinalRef   = useRef('');   // exact-match duplicate guard
-  const interimRef     = useRef('');   // THE FIX: single ref for current interim
+  const recognitionRef   = useRef(null);
+  const committedTextRef = useRef('');  // confirmed final text as a plain string
+  const lastFinalRef     = useRef('');  // exact-match guard
+  const processedCountRef = useRef(0);  // how many results we have already finalised
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -33,51 +33,46 @@ export default function StudioPage() {
 
     recognition.onresult = (event) => {
       // ─────────────────────────────────────────────────────────────────────
-      // THE ACTUAL BUG (visible in the screenshot):
+      // THE ANDROID BUG (confirmed by screenshot pattern):
       //
-      // The previous code did:  interim += clean + ' '  inside the loop.
-      // This ACCUMULATES every interim guess from every event fired.
-      // Android fires onresult on every single word as it builds a sentence.
-      // So you got: "this" + "this is" + "this is a" + "this is a recording"
-      // all concatenated together — which is exactly what the screenshot shows.
+      // On Android Chrome, event.resultIndex is frequently reset to 0 on
+      // every single onresult call. This means the loop replays ALL results
+      // from the very beginning every time — not just the new ones.
       //
       // THE FIX:
-      // Reset interim to '' at the START of each onresult call.
-      // Only the LATEST interim snapshot from this single event is shown.
-      // Final results still go into segmentsRef (immutable, never overwritten).
+      // We track processedCountRef ourselves — the number of results we have
+      // already committed as final. We only loop from that index forward.
+      // Interim is ONLY taken from the very last result in the event.
       // ─────────────────────────────────────────────────────────────────────
-      let currentInterim = '';  // reset every single time onresult fires
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const raw    = result[0].transcript;
-        if (!raw) continue;
+      const results = event.results;
 
-        const clean = raw.trim().replace(/\s+/g, ' ');
+      // Process any NEW final results we haven't seen yet
+      for (let i = processedCountRef.current; i < results.length; i++) {
+        if (results[i].isFinal) {
+          const clean = results[i][0].transcript.trim().replace(/\s+/g, ' ');
 
-        if (result.isFinal) {
-          // Clear interim because this phrase is now confirmed
-          currentInterim = '';
-          interimRef.current = '';
+          // Exact-match duplicate guard
+          if (clean && clean !== lastFinalRef.current) {
+            lastFinalRef.current = clean;
+            committedTextRef.current = (committedTextRef.current + ' ' + clean).trim();
+          }
 
-          // Exact-match duplicate guard only — no fuzzy logic
-          if (clean === lastFinalRef.current) continue;
-          lastFinalRef.current = clean;
-
-          // Immutable append to segments
-          segmentsRef.current.push(clean);
-        } else {
-          // This is the CURRENT in-progress phrase — replace, never accumulate
-          currentInterim = clean;
+          // Advance our counter so we never process this result again
+          processedCountRef.current = i + 1;
         }
       }
 
-      interimRef.current = currentInterim;
+      // Show committed text + ONLY the very last result if it's interim
+      const lastResult = results[results.length - 1];
+      const currentInterim = (!lastResult.isFinal)
+        ? lastResult[0].transcript.trim()
+        : '';
 
-      // Display: confirmed segments + current interim guess
-      const display = [...segmentsRef.current];
-      if (currentInterim) display.push(currentInterim);
-      setText(display.join(' '));
+      const display = committedTextRef.current
+        + (currentInterim ? ' ' + currentInterim : '');
+
+      setText(display.trim());
     };
 
     recognition.onerror = (e) => {
@@ -87,7 +82,6 @@ export default function StudioPage() {
       }
     };
 
-    // No restart logic — continuous = true keeps session alive
     recognition.onend = () => {
       setIsRecording(false);
     };
@@ -95,12 +89,12 @@ export default function StudioPage() {
     recognitionRef.current = recognition;
   }, []);
 
-  // ── Start ──────────────────────────────────────────────────────────────────
+  // ── Start ────────────────────────────────────────────────────────────────
   const startRecording = () => {
-    // Seed segments with any existing text so voice appends to it
-    segmentsRef.current  = text.trim() ? [text.trim()] : [];
-    lastFinalRef.current = '';
-    interimRef.current   = '';
+    // Seed committed text with whatever is already in the box
+    committedTextRef.current  = text.trim();
+    lastFinalRef.current      = '';
+    processedCountRef.current = 0;
 
     try {
       recognitionRef.current?.start();
@@ -111,20 +105,16 @@ export default function StudioPage() {
     }
   };
 
-  // ── Stop ───────────────────────────────────────────────────────────────────
+  // ── Stop ─────────────────────────────────────────────────────────────────
   const stopRecording = () => {
     try { recognitionRef.current?.stop(); } catch (_) {}
     setIsRecording(false);
     setStatus('✅ Recording stopped.');
   };
 
-  // ── Save ───────────────────────────────────────────────────────────────────
+  // ── Save ─────────────────────────────────────────────────────────────────
   const handleSave = () => {
-    // Use segments as source of truth; fall back to text box if typed manually
-    const finalText = segmentsRef.current.length
-      ? segmentsRef.current.join(' ').trim()
-      : text.trim();
-
+    const finalText = committedTextRef.current.trim() || text.trim();
     if (!finalText) return setStatus('⚠️ Nothing to save yet.');
 
     processVoiceInput(
@@ -133,16 +123,16 @@ export default function StudioPage() {
       newTitle.trim() || null
     );
 
-    segmentsRef.current  = [];
-    lastFinalRef.current = '';
-    interimRef.current   = '';
+    committedTextRef.current  = '';
+    lastFinalRef.current      = '';
+    processedCountRef.current = 0;
     setText('');
     setNewTitle('');
     setSelectedId('');
     setStatus('✅ Saved! Tap CONTENTS to see it.');
   };
 
-  // ── Delete chapter ─────────────────────────────────────────────────────────
+  // ── Delete chapter ────────────────────────────────────────────────────────
   const handleDelete = () => {
     if (!selectedId) return setStatus('⚠️ Select a chapter to delete.');
     if (window.confirm('Permanently delete this chapter and all its pages?')) {
@@ -152,7 +142,7 @@ export default function StudioPage() {
     }
   };
 
-  // ── UI ─────────────────────────────────────────────────────────────────────
+  // ── UI ────────────────────────────────────────────────────────────────────
   return (
     <main style={{
       padding: '10px',
@@ -247,8 +237,9 @@ export default function StudioPage() {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            // Re-seed segments on manual edit so voice appends correctly after
-            segmentsRef.current = e.target.value ? [e.target.value] : [];
+            committedTextRef.current  = e.target.value;
+            processedCountRef.current = 0;
+            lastFinalRef.current      = '';
           }}
           placeholder="Speak or type your story here…"
           style={{
