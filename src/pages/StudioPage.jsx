@@ -15,15 +15,9 @@ export default function StudioPage() {
   const deleteChapter     = useBookStore((s) => s.deleteChapter);
 
   const recognitionRef = useRef(null);
-
-  // ─── SALLY'S ARCHITECTURE ────────────────────────────────────────────────
-  // Each confirmed final phrase is pushed into segmentsRef as an immutable
-  // entry. We never merge, compare, or rewrite the buffer. The text box is
-  // just a view: segments joined + current interim. This eliminates replay
-  // duplication at the architecture level rather than trying to patch it.
-  // ─────────────────────────────────────────────────────────────────────────
-  const segmentsRef  = useRef([]);   // immutable append-only final phrases
-  const lastFinalRef = useRef('');   // exact-match guard: one duplicate block only
+  const segmentsRef    = useRef([]);   // confirmed final phrases only
+  const lastFinalRef   = useRef('');   // exact-match duplicate guard
+  const interimRef     = useRef('');   // THE FIX: single ref for current interim
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -33,15 +27,26 @@ export default function StudioPage() {
     }
 
     const recognition = new SpeechRecognition();
-
-    // continuous = true: browser owns the session lifecycle.
-    // No manual restart = no Android context-replay duplication.
     recognition.continuous     = true;
     recognition.interimResults = true;
     recognition.lang           = 'en-US';
 
     recognition.onresult = (event) => {
-      let interim = '';
+      // ─────────────────────────────────────────────────────────────────────
+      // THE ACTUAL BUG (visible in the screenshot):
+      //
+      // The previous code did:  interim += clean + ' '  inside the loop.
+      // This ACCUMULATES every interim guess from every event fired.
+      // Android fires onresult on every single word as it builds a sentence.
+      // So you got: "this" + "this is" + "this is a" + "this is a recording"
+      // all concatenated together — which is exactly what the screenshot shows.
+      //
+      // THE FIX:
+      // Reset interim to '' at the START of each onresult call.
+      // Only the LATEST interim snapshot from this single event is shown.
+      // Final results still go into segmentsRef (immutable, never overwritten).
+      // ─────────────────────────────────────────────────────────────────────
+      let currentInterim = '';  // reset every single time onresult fires
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
@@ -51,30 +56,38 @@ export default function StudioPage() {
         const clean = raw.trim().replace(/\s+/g, ' ');
 
         if (result.isFinal) {
-          // ONLY guard allowed: exact duplicate of the last final phrase
+          // Clear interim because this phrase is now confirmed
+          currentInterim = '';
+          interimRef.current = '';
+
+          // Exact-match duplicate guard only — no fuzzy logic
           if (clean === lastFinalRef.current) continue;
           lastFinalRef.current = clean;
 
-          // IMMUTABLE APPEND — never merge, never rewrite
+          // Immutable append to segments
           segmentsRef.current.push(clean);
         } else {
-          interim += clean + ' ';
+          // This is the CURRENT in-progress phrase — replace, never accumulate
+          currentInterim = clean;
         }
       }
 
-      // Text box is a read-only view of segments + live interim
-      setText([...segmentsRef.current, interim.trim()].filter(Boolean).join(' '));
+      interimRef.current = currentInterim;
+
+      // Display: confirmed segments + current interim guess
+      const display = [...segmentsRef.current];
+      if (currentInterim) display.push(currentInterim);
+      setText(display.join(' '));
     };
 
     recognition.onerror = (e) => {
-      // 'no-speech' fires during natural pauses — not a real error
       if (e.error !== 'no-speech') {
         setStatus(`⚠️ Mic error: ${e.error}`);
         setIsRecording(false);
       }
     };
 
-    // DO NOTHING on onend — no restart, no recovery, no loops.
+    // No restart logic — continuous = true keeps session alive
     recognition.onend = () => {
       setIsRecording(false);
     };
@@ -82,12 +95,12 @@ export default function StudioPage() {
     recognitionRef.current = recognition;
   }, []);
 
-  // ── Start ────────────────────────────────────────────────────────────────
+  // ── Start ──────────────────────────────────────────────────────────────────
   const startRecording = () => {
-    // If there is already text in the box (typed or previous session),
-    // seed it as the first segment so voice appends cleanly
-    segmentsRef.current = text.trim() ? [text.trim()] : [];
+    // Seed segments with any existing text so voice appends to it
+    segmentsRef.current  = text.trim() ? [text.trim()] : [];
     lastFinalRef.current = '';
+    interimRef.current   = '';
 
     try {
       recognitionRef.current?.start();
@@ -98,16 +111,20 @@ export default function StudioPage() {
     }
   };
 
-  // ── Stop ─────────────────────────────────────────────────────────────────
+  // ── Stop ───────────────────────────────────────────────────────────────────
   const stopRecording = () => {
     try { recognitionRef.current?.stop(); } catch (_) {}
     setIsRecording(false);
     setStatus('✅ Recording stopped.');
   };
 
-  // ── Save ─────────────────────────────────────────────────────────────────
+  // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = () => {
-    const finalText = segmentsRef.current.join(' ').trim() || text.trim();
+    // Use segments as source of truth; fall back to text box if typed manually
+    const finalText = segmentsRef.current.length
+      ? segmentsRef.current.join(' ').trim()
+      : text.trim();
+
     if (!finalText) return setStatus('⚠️ Nothing to save yet.');
 
     processVoiceInput(
@@ -116,15 +133,16 @@ export default function StudioPage() {
       newTitle.trim() || null
     );
 
-    segmentsRef.current = [];
+    segmentsRef.current  = [];
     lastFinalRef.current = '';
+    interimRef.current   = '';
     setText('');
     setNewTitle('');
     setSelectedId('');
     setStatus('✅ Saved! Tap CONTENTS to see it.');
   };
 
-  // ── Delete chapter ───────────────────────────────────────────────────────
+  // ── Delete chapter ─────────────────────────────────────────────────────────
   const handleDelete = () => {
     if (!selectedId) return setStatus('⚠️ Select a chapter to delete.');
     if (window.confirm('Permanently delete this chapter and all its pages?')) {
@@ -134,7 +152,7 @@ export default function StudioPage() {
     }
   };
 
-  // ── UI ───────────────────────────────────────────────────────────────────
+  // ── UI ─────────────────────────────────────────────────────────────────────
   return (
     <main style={{
       padding: '10px',
@@ -176,7 +194,6 @@ export default function StudioPage() {
         }}>
           WRITING STUDIO
         </span>
-        {/* Spacer to keep title centred */}
         <div style={{ width: '90px' }} />
       </div>
 
@@ -229,9 +246,8 @@ export default function StudioPage() {
         <textarea
           value={text}
           onChange={(e) => {
-            // Allow manual typing/editing.
-            // Re-seed segments so voice appends correctly after an edit.
             setText(e.target.value);
+            // Re-seed segments on manual edit so voice appends correctly after
             segmentsRef.current = e.target.value ? [e.target.value] : [];
           }}
           placeholder="Speak or type your story here…"
