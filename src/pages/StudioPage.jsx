@@ -2,22 +2,27 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useBookStore } from '../store/bookStore';
 import { useNavigate } from 'react-router-dom';
 
+// Detect mobile once
+const isMobile = () =>
+  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+  window.innerWidth <= 768;
+
 export default function StudioPage() {
   const [text, setText]               = useState('');
   const [status, setStatus]           = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [newTitle, setNewTitle]       = useState('');
   const [selectedId, setSelectedId]   = useState('');
+  const [mobile]                      = useState(() => isMobile());
 
   const navigate          = useNavigate();
   const chapters          = useBookStore((s) => s.chapters);
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter     = useBookStore((s) => s.deleteChapter);
 
-  const recognitionRef   = useRef(null);
-  const committedTextRef = useRef('');  // confirmed final text as a plain string
-  const lastFinalRef     = useRef('');  // exact-match guard
-  const processedCountRef = useRef(0);  // how many results we have already finalised
+  const recognitionRef    = useRef(null);
+  const committedTextRef  = useRef('');
+  const lastFinalRef      = useRef('');
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -27,52 +32,46 @@ export default function StudioPage() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous     = true;
-    recognition.interimResults = true;
-    recognition.lang           = 'en-US';
+    recognition.continuous = true;
+    recognition.lang       = 'en-US';
+
+    // ─────────────────────────────────────────────────────────────────────
+    // THE ROOT CAUSE (confirmed across all screenshots):
+    //
+    // Android Chrome fires onresult on EVERY SINGLE WORD as an interim
+    // result, each time sending the growing sentence from the beginning.
+    // Showing interim results on mobile = showing every version of the
+    // sentence stacked together.
+    //
+    // THE FIX:
+    // On mobile: interimResults = false. We only receive confirmed final
+    // text. Nothing is shown until the browser is sure of the words.
+    // On desktop: interimResults = true works fine — keep the live preview.
+    // ─────────────────────────────────────────────────────────────────────
+    recognition.interimResults = !mobile;
 
     recognition.onresult = (event) => {
-      // ─────────────────────────────────────────────────────────────────────
-      // THE ANDROID BUG (confirmed by screenshot pattern):
-      //
-      // On Android Chrome, event.resultIndex is frequently reset to 0 on
-      // every single onresult call. This means the loop replays ALL results
-      // from the very beginning every time — not just the new ones.
-      //
-      // THE FIX:
-      // We track processedCountRef ourselves — the number of results we have
-      // already committed as final. We only loop from that index forward.
-      // Interim is ONLY taken from the very last result in the event.
-      // ─────────────────────────────────────────────────────────────────────
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (!event.results[i].isFinal) continue; // skip interim on desktop too if any slip through
 
-      const results = event.results;
+        const clean = event.results[i][0].transcript.trim().replace(/\s+/g, ' ');
+        if (!clean) continue;
 
-      // Process any NEW final results we haven't seen yet
-      for (let i = processedCountRef.current; i < results.length; i++) {
-        if (results[i].isFinal) {
-          const clean = results[i][0].transcript.trim().replace(/\s+/g, ' ');
+        // Exact-match duplicate guard
+        if (clean === lastFinalRef.current) continue;
+        lastFinalRef.current = clean;
 
-          // Exact-match duplicate guard
-          if (clean && clean !== lastFinalRef.current) {
-            lastFinalRef.current = clean;
-            committedTextRef.current = (committedTextRef.current + ' ' + clean).trim();
-          }
-
-          // Advance our counter so we never process this result again
-          processedCountRef.current = i + 1;
-        }
+        committedTextRef.current = (committedTextRef.current + ' ' + clean).trim();
+        setText(committedTextRef.current);
       }
 
-      // Show committed text + ONLY the very last result if it's interim
-      const lastResult = results[results.length - 1];
-      const currentInterim = (!lastResult.isFinal)
-        ? lastResult[0].transcript.trim()
-        : '';
-
-      const display = committedTextRef.current
-        + (currentInterim ? ' ' + currentInterim : '');
-
-      setText(display.trim());
+      // Desktop only: show live interim preview
+      if (!mobile) {
+        const lastResult = event.results[event.results.length - 1];
+        if (!lastResult.isFinal) {
+          setText(committedTextRef.current + ' ' + lastResult[0].transcript.trim());
+        }
+      }
     };
 
     recognition.onerror = (e) => {
@@ -87,19 +86,17 @@ export default function StudioPage() {
     };
 
     recognitionRef.current = recognition;
-  }, []);
+  }, [mobile]);
 
   // ── Start ────────────────────────────────────────────────────────────────
   const startRecording = () => {
-    // Seed committed text with whatever is already in the box
-    committedTextRef.current  = text.trim();
-    lastFinalRef.current      = '';
-    processedCountRef.current = 0;
+    committedTextRef.current = text.trim();
+    lastFinalRef.current     = '';
 
     try {
       recognitionRef.current?.start();
       setIsRecording(true);
-      setStatus('🎤 Listening…');
+      setStatus(mobile ? '🎤 Listening… speak, then pause for results' : '🎤 Listening…');
     } catch (e) {
       setStatus('⚠️ Could not start mic. Tap again.');
     }
@@ -123,9 +120,8 @@ export default function StudioPage() {
       newTitle.trim() || null
     );
 
-    committedTextRef.current  = '';
-    lastFinalRef.current      = '';
-    processedCountRef.current = 0;
+    committedTextRef.current = '';
+    lastFinalRef.current     = '';
     setText('');
     setNewTitle('');
     setSelectedId('');
@@ -237,11 +233,14 @@ export default function StudioPage() {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            committedTextRef.current  = e.target.value;
-            processedCountRef.current = 0;
-            lastFinalRef.current      = '';
+            committedTextRef.current = e.target.value;
+            lastFinalRef.current     = '';
           }}
-          placeholder="Speak or type your story here…"
+          placeholder={
+            isRecording && mobile
+              ? 'Speak now… text appears after each pause'
+              : 'Speak or type your story here…'
+          }
           style={{
             width: '100%',
             height: '100%',
