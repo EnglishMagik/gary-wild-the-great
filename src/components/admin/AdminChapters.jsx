@@ -113,11 +113,8 @@ export default function AdminChapters() {
               <span className="card-title-inline">{ch.title}</span>
             </div>
 
-            {/* ROW 2: page count + action buttons */}
+            {/* ROW 2: buttons on left, page count on right */}
             <div className="card-bottom-row">
-              <span className="card-meta">
-                {ch.pages.length} page{ch.pages.length !== 1 ? 's' : ''}
-              </span>
               <div className="card-actions">
                 <button
                   className="icon-btn"
@@ -130,6 +127,9 @@ export default function AdminChapters() {
                 <button className="icon-btn" onClick={() => moveChapter(i, i - 1)}>↑</button>
                 <button className="icon-btn" onClick={() => moveChapter(i, i + 1)}>↓</button>
               </div>
+              <span className="card-meta">
+                {ch.pages.length} page{ch.pages.length !== 1 ? 's' : ''}
+              </span>
             </div>
 
           </div>

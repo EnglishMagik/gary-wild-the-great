@@ -22,7 +22,7 @@ export default function AdminPage() {
           <NavLink to="/admin/pages"      className={navClass}>Pages</NavLink>
           <NavLink to="/admin/media"      className={navClass}>Media</NavLink>
           <NavLink to="/admin/dedication" className={navClass}>Dedication</NavLink>
-          <NavLink to="/admin/export"     className={navClass}>⬇</NavLink>
+          <NavLink to="/admin/export"     className={navClass}>Export</NavLink>
         </aside>
 
         <main className="admin-main">

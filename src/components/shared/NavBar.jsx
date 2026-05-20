@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom'
 import './NavBar.css'
 
 const LINKS = [
-  { to: '/contents', label: 'CONTENTS' },
-  { to: '/reader',   label: 'READ'     },
-  { to: '/studio',   label: 'WRITE'    },
+  { to: '/contents',     label: 'CONTENTS' },
+  { to: '/studio',       label: '✎ RECORD'  },
+  { to: '/admin/export', label: 'EXPORT'   },
 ]
 
 export default function NavBar() {
