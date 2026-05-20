@@ -14,7 +14,7 @@ export default function Key({ onKeyUsed }) {
       {
         filter: 'drop-shadow(0 0 20px white) drop-shadow(0 0 40px rgba(100,149,237,1)) drop-shadow(0 0 60px rgba(0,100,255,0.9))',
         duration: 0.3,
-        repeat: 5,
+        repeat: 2,
         yoyo: true,
         ease: 'sine.inOut',
         onComplete: () => {

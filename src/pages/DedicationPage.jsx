@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBookStore } from '../store/bookStore'
 
+// ── EASY LOGO SIZE CONTROL ───────────────────────────────────────────────────
+// Change this one number to make the BioMe logo bigger or smaller on mobile.
+// 120px is a good starting point. Try 80px (smaller) or 160px (larger).
+const BIOME_LOGO_SIZE = '120px'
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function DedicationPage() {
   const navigate = useNavigate()
   const dedication = useBookStore((s) => s.dedication)
@@ -19,22 +25,23 @@ export default function DedicationPage() {
       ? dedication
       : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  // ── MOBILE — clean white card, shifted up ────────────────────────────────
+  // ── MOBILE ────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div style={{
         width: '100%',
         minHeight: '100vh',
-        background: '#f5f0e8',
+        background: '#2a1a0e',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
         paddingTop: '1.5rem',
-        paddingBottom: '2rem',
+        paddingBottom: '2.5rem',
         paddingLeft: '1.5rem',
         paddingRight: '1.5rem',
         boxSizing: 'border-box',
+        gap: '1.5rem',
       }}>
 
         {/* WHITE CARD with gold border */}
@@ -42,7 +49,7 @@ export default function DedicationPage() {
           background: '#ffffff',
           border: '3px solid #c9a84c',
           borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           padding: '1.75rem 1.5rem',
           width: '100%',
           maxWidth: '340px',
@@ -96,7 +103,7 @@ export default function DedicationPage() {
             ✦ ✦ ✦
           </div>
 
-          {/* DEDICATION TEXT — black on white */}
+          {/* DEDICATION TEXT */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
@@ -131,6 +138,20 @@ export default function DedicationPage() {
           </button>
 
         </div>
+
+        {/* BIOME LOGO — sits below the card on the brown background        */}
+        {/* To resize: change BIOME_LOGO_SIZE at the top of this file       */}
+        <img
+          src="/assets/BioMe.png"
+          alt="BioMe"
+          style={{
+            width: BIOME_LOGO_SIZE,
+            height: 'auto',
+            opacity: 0.9,
+            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))',
+          }}
+        />
+
       </div>
     )
   }
