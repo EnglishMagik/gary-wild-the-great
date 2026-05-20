@@ -56,8 +56,8 @@ export default function ContentsPage() {
           <div
             onClick={() => navigate('/')}
             style={{
-              width: '41px',
-              height: '41px',
+              width: '42px',
+              height: '42px',
               borderRadius: '50%',
               background: 'white',
               display: 'flex',
@@ -66,7 +66,7 @@ export default function ContentsPage() {
               cursor: 'pointer',
               boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
               flexShrink: 0,
-              padding: '0px',
+              padding: '2px',
               boxSizing: 'border-box',
             }}
           >
