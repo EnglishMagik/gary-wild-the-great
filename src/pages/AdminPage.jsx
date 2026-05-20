@@ -13,7 +13,6 @@ import './AdminPage.css'
 export default function AdminPage() {
   return (
     <div className="admin-page-container">
-      {/* 🟢 YOUR EXIT BUTTONS ARE HERE */}
       <NavBar />
 
       <div className="admin-layout">
@@ -23,7 +22,7 @@ export default function AdminPage() {
           <NavLink to="/admin/pages"      className={navClass}>Pages</NavLink>
           <NavLink to="/admin/media"      className={navClass}>Media</NavLink>
           <NavLink to="/admin/dedication" className={navClass}>Dedication</NavLink>
-          <NavLink to="/admin/export"     className={navClass}>Export</NavLink>
+          <NavLink to="/admin/export"     className={navClass}>⬇</NavLink>
         </aside>
 
         <main className="admin-main">

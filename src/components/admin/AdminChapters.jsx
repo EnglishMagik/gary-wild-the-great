@@ -3,23 +3,25 @@ import { useBookStore } from '../../store/bookStore'
 import './Admin.css'
 
 export default function AdminChapters() {
-  const chapters = useBookStore((s) => s.chapters)
-  const addChapter = useBookStore((s) => s.addChapter)
+  const chapters      = useBookStore((s) => s.chapters)
+  const addChapter    = useBookStore((s) => s.addChapter)
   const renameChapter = useBookStore((s) => s.renameChapter)
   const deleteChapter = useBookStore((s) => s.deleteChapter)
-  const addPage = useBookStore((s) => s.addPage)
-  const showToast = useBookStore((s) => s.showToast)
+  const addPage       = useBookStore((s) => s.addPage)
+  const showToast     = useBookStore((s) => s.showToast)
 
-  const [newTitle, setNewTitle] = useState('')
-  const [showPagePanel, setShowPagePanel] = useState(false)
-  const [selectedChapter, setSelectedChapter] = useState('')
-  const [pageText, setPageText] = useState('')
+  const [showChapterInput, setShowChapterInput] = useState(false)
+  const [newTitle, setNewTitle]                 = useState('')
+  const [showPagePanel, setShowPagePanel]       = useState(false)
+  const [selectedChapter, setSelectedChapter]   = useState('')
+  const [pageText, setPageText]                 = useState('')
 
   const handleAddChapter = () => {
     const t = newTitle.trim()
     if (!t) return showToast('Enter chapter title')
     addChapter(t)
     setNewTitle('')
+    setShowChapterInput(false)
     showToast('Chapter added')
   }
 
@@ -48,106 +50,92 @@ export default function AdminChapters() {
 
       <h2 className="admin-panel-title">Chapters</h2>
 
-      {/* CHAPTER LIST */}
+      {/* ── TOP ACTION ROW: + Chapter and + Page side by side ── */}
+      <div className="top-action-row">
+        <button className="btn-half" onClick={() => { setShowChapterInput((v) => !v); setShowPagePanel(false) }}>
+          + Chapter
+        </button>
+        <button className="btn-half btn-secondary-half" onClick={() => { setShowPagePanel((v) => !v); setShowChapterInput(false) }}>
+          + Page
+        </button>
+      </div>
+
+      {/* ── INLINE CHAPTER INPUT ── */}
+      {showChapterInput && (
+        <div className="add-form-row" style={{ marginBottom: '1rem' }}>
+          <input
+            className="form-input"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddChapter()}
+            placeholder="Chapter title..."
+            autoFocus
+          />
+          <button className="btn-primary" onClick={handleAddChapter}>Add</button>
+        </div>
+      )}
+
+      {/* ── INLINE PAGE INPUT ── */}
+      {showPagePanel && (
+        <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <select
+            className="form-input"
+            value={selectedChapter}
+            onChange={(e) => setSelectedChapter(e.target.value)}
+          >
+            <option value="">Select Chapter</option>
+            {chapters.map((ch, i) => (
+              <option key={ch.id} value={ch.id}>CH {i + 1} — {ch.title}</option>
+            ))}
+          </select>
+          <textarea
+            placeholder="Write page text..."
+            value={pageText}
+            onChange={(e) => setPageText(e.target.value)}
+            style={{ width: '100%', minHeight: 100, padding: '0.5rem', fontFamily: 'Calibri, sans-serif', border: '1px solid #ddd', borderRadius: '4px', boxSizing: 'border-box' }}
+          />
+          <button className="btn-primary" onClick={handleAddPage}>Create Page</button>
+        </div>
+      )}
+
+      {chapters.length === 0 && (
+        <p className="admin-empty">No chapters yet. Tap + Chapter above.</p>
+      )}
+
+      {/* ── CHAPTER CARDS — 2 row layout ── */}
       <div className="card-list">
         {chapters.map((ch, i) => (
-          <div
-            key={ch.id}
-            className="card"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0.75rem 1rem'
-            }}
-          >
+          <div key={ch.id} className="card card-stacked">
 
-            {/* LEFT */}
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <strong>CH {i + 1}</strong>
-              <span>{ch.title}</span>
+            {/* ROW 1: CH number + title */}
+            <div className="card-top-row">
+              <span className="card-label-inline">CH {i + 1}</span>
+              <span className="card-title-inline">{ch.title}</span>
             </div>
 
-            {/* RIGHT */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-
-              {/* EDIT TITLE */}
-              <button
-                className="icon-btn"
-                onClick={() => {
-                  const t = window.prompt('Edit chapter title', ch.title)
-                  if (t) renameChapter(ch.id, t)
-                }}
-              >
-                ✎
-              </button>
-
-              {/* DELETE */}
-              <button
-                className="icon-btn"
-                onClick={() => deleteChapter(ch.id)}
-              >
-                🗑
-              </button>
-
-              {/* UP */}
-              <button onClick={() => moveChapter(i, i - 1)}>↑</button>
-
-              {/* DOWN */}
-              <button onClick={() => moveChapter(i, i + 1)}>↓</button>
-
+            {/* ROW 2: page count + action buttons */}
+            <div className="card-bottom-row">
+              <span className="card-meta">
+                {ch.pages.length} page{ch.pages.length !== 1 ? 's' : ''}
+              </span>
+              <div className="card-actions">
+                <button
+                  className="icon-btn"
+                  onClick={() => {
+                    const t = window.prompt('Edit chapter title', ch.title)
+                    if (t) renameChapter(ch.id, t)
+                  }}
+                >✎</button>
+                <button className="icon-btn" onClick={() => deleteChapter(ch.id)}>🗑</button>
+                <button className="icon-btn" onClick={() => moveChapter(i, i - 1)}>↑</button>
+                <button className="icon-btn" onClick={() => moveChapter(i, i + 1)}>↓</button>
+              </div>
             </div>
+
           </div>
         ))}
       </div>
 
-      {/* ADD CHAPTER + PAGE */}
-      <div style={{ marginTop: '1.5rem' }}>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <button className="btn-primary" onClick={() => {
-  const title = prompt("Chapter title?");
-  if (title) addChapter(title);
-}}>
-            + Add Chapter
-          </button>
-
-          <button className="btn-primary" onClick={() => setShowPagePanel(!showPagePanel)}>
-            + Add New Page
-          </button>
-        </div>
-
-        {/* PAGE CREATOR */}
-        {showPagePanel && (
-          <div style={{ marginTop: '1rem' }}>
-
-            <select
-              value={selectedChapter}
-              onChange={(e) => setSelectedChapter(e.target.value)}
-            >
-              <option value="">Select Chapter</option>
-              {chapters.map(ch => (
-                <option key={ch.id} value={ch.id}>
-                  CH {chapters.indexOf(ch) + 1} — {ch.title}
-                </option>
-              ))}
-            </select>
-
-            <textarea
-              placeholder="Write page text..."
-              value={pageText}
-              onChange={(e) => setPageText(e.target.value)}
-              style={{ width: '100%', minHeight: 120, marginTop: 10 }}
-            />
-
-            <button className="btn-primary" onClick={handleAddPage}>
-              Create Page
-            </button>
-
-          </div>
-        )}
-
-      </div>
     </div>
   )
 }

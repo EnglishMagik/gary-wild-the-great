@@ -3,11 +3,9 @@ import { NavLink } from 'react-router-dom'
 import './NavBar.css'
 
 const LINKS = [
-  { to: '/',         label: 'COVER'    },
   { to: '/contents', label: 'CONTENTS' },
   { to: '/reader',   label: 'READ'     },
-  { to: '/studio',   label: '✎ WRITE'  },
-  { to: '/admin',    label: '⚙ ADMIN'  },
+  { to: '/studio',   label: 'WRITE'    },
 ]
 
 export default function NavBar() {

@@ -86,11 +86,48 @@ body {
   border-bottom: 2px solid #c9a84c;
 }
 
+.admin-subtitle {
+  color: rgba(26,18,8,0.55);
+  font-style: italic;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+
 .admin-empty {
   color: #999;
   font-style: italic;
   margin-bottom: 1rem;
 }
+
+/* =====================
+   TOP ACTION ROW (new)
+===================== */
+.top-action-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.btn-half {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  background: #388E3C;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-family: Cinzel, serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-half:hover { background: #2e7d32; }
+
+.btn-secondary-half {
+  background: #555;
+}
+.btn-secondary-half:hover { background: #333; }
 
 /* =====================
    CARDS
@@ -113,6 +150,44 @@ body {
   gap: 1rem;
 }
 
+/* Stacked 2-row card (new — for Chapters) */
+.card.card-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  padding: 0.6rem 0.85rem;
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.card-label-inline {
+  font-family: Cinzel, serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #8b6914;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-title-inline {
+  font-size: 0.95rem;
+  color: #1a1208;
+  font-weight: 500;
+  flex: 1;
+}
+
+.card-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 2rem;
+}
+
 .card-info {
   flex: 1;
 }
@@ -125,6 +200,12 @@ body {
 /* =====================
    BUTTONS
 ===================== */
+.card-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
 .icon-btn {
   background: white;
   border: 1px solid #ddd;
@@ -138,6 +219,14 @@ body {
   background: #f0f0f0;
 }
 
+.btn-danger {
+  color: #c0392b;
+}
+.btn-danger:hover {
+  background: #fdecea;
+  border-color: #c0392b;
+}
+
 .btn-primary {
   background: #388E3C;
   color: white;
@@ -148,6 +237,7 @@ body {
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -167,6 +257,39 @@ body {
 }
 
 /* =====================
+   FORMS
+===================== */
+.add-form-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.form-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: Calibri, sans-serif;
+  font-size: 0.95rem;
+  color: #1a1208;
+}
+.form-input:focus {
+  outline: none;
+  border-color: #c9a84c;
+}
+
+.inline-edit {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #c9a84c;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-family: Calibri, sans-serif;
+}
+.inline-edit:focus { outline: none; }
+
+/* =====================
    CHAPTER BLOCKS
 ===================== */
 .chapter-block {
@@ -184,7 +307,7 @@ body {
 }
 
 /* =====================
-   ADD BUTTONS FIX
+   ADD BUTTONS
 ===================== */
 .add-buttons {
   display: flex;
@@ -194,7 +317,7 @@ body {
 }
 
 /* =====================
-   EDITOR (FIXED CLEAN UI)
+   EDITOR
 ===================== */
 .editor-box {
   background: #fffcf5;
@@ -240,4 +363,139 @@ body {
   display: flex;
   gap: 0.75rem;
   margin-top: 0.75rem;
+}
+
+/* =====================
+   DEDICATION
+===================== */
+.dedication-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 1rem;
+  font-family: Calibri, sans-serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  border: 1px solid #c9a84c;
+  border-radius: 6px;
+  background: #fffef8;
+  box-sizing: border-box;
+}
+.dedication-textarea:focus { outline: none; border-color: #8b6914; }
+
+/* =====================
+   EXPORT CARDS
+===================== */
+.export-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.export-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.export-card h3 {
+  font-family: Cinzel, serif;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  color: #1a1208;
+}
+
+.export-card p {
+  font-size: 0.88rem;
+  color: rgba(26,18,8,0.55);
+  margin-bottom: 1rem;
+}
+
+/* =====================
+   MEDIA
+===================== */
+.media-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.media-upload-btn {
+  background: white;
+  border: 2px dashed #c9a84c;
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #555;
+  transition: all 0.2s;
+}
+.media-upload-btn:hover {
+  background: #fffcf0;
+  border-color: #8b6914;
+}
+
+.media-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.media-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.media-card-icon { font-size: 1.5rem; }
+.media-card-thumb { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; }
+.media-card-name { font-size: 0.78rem; color: #555; text-align: center; word-break: break-all; }
+
+/* =====================
+   MOBILE
+===================== */
+@media (max-width: 767px) {
+  .admin-layout {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 45px);
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    padding: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+
+  .admin-sidebar::-webkit-scrollbar { display: none; }
+  .admin-sidebar-label { display: none; }
+
+  .admin-nav-link {
+    flex-shrink: 0;
+    padding: 12px 14px;
+    border-radius: 0;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    font-size: 0.68rem;
+  }
+
+  .admin-nav-link.active {
+    background: transparent;
+    color: white;
+    border-bottom: 3px solid #388E3C;
+  }
+
+  .admin-main { padding: 1rem; }
 }
