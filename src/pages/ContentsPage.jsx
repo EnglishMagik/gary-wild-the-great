@@ -22,7 +22,7 @@ export default function ContentsPage() {
     }
   }
 
-  // ── MOBILE LAYOUT ─────────────────────────────────────────────────────────
+  // ── MOBILE ────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div className="portals-page">
@@ -34,6 +34,7 @@ export default function ContentsPage() {
             60%     { transform: translateX(-4px); }
             80%     { transform: translateX(4px); }
           }
+          .pw-input::placeholder { color: rgba(255,255,255,0.6); }
         `}</style>
 
         <div style={{
@@ -48,22 +49,22 @@ export default function ContentsPage() {
           minHeight: '100vh',
         }}>
 
-          {/* CROWN — doubled in size, centred */}
+          {/* CROWN — 130px, large and centred */}
           <div
             onClick={() => navigate('/')}
             style={{
-              width: '80px',
-              height: '80px',
+              width: '130px',
+              height: '130px',
               borderRadius: '50%',
               background: 'white',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.45)',
               overflow: 'hidden',
               flexShrink: 0,
-              padding: '6px',
+              padding: '8px',
               boxSizing: 'border-box',
             }}
           >
@@ -74,7 +75,7 @@ export default function ContentsPage() {
             />
           </div>
 
-          {/* PASSWORD BOX — skinny, white text, placeholder only */}
+          {/* PASSWORD BOX — skinny, white text */}
           <div style={{
             display: 'flex',
             gap: '0.4rem',
@@ -83,6 +84,7 @@ export default function ContentsPage() {
             animation: shake ? 'shake 0.4s ease' : 'none',
           }}>
             <input
+              className="pw-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -124,7 +126,7 @@ export default function ContentsPage() {
             </button>
           </div>
 
-          {/* LIFE CHAPTERS — large circle */}
+          {/* LIFE CHAPTERS — large */}
           <div
             className="portal-circle portal-circle--large"
             onClick={() => navigate('/chapters')}
@@ -136,18 +138,12 @@ export default function ContentsPage() {
 
           {/* GALLERY + AUDIO — smaller, side by side */}
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <div
-              className="portal-circle portal-circle--small"
-              onClick={() => navigate('/gallery')}
-            >
+            <div className="portal-circle portal-circle--small" onClick={() => navigate('/gallery')}>
               <div className="portal-icon" style={{ fontSize: '1.6rem' }}>🖼</div>
               <div className="portal-label" style={{ fontSize: '0.68rem' }}>Gallery</div>
               <div className="portal-desc" style={{ fontSize: '0.62rem' }}>Moments in time</div>
             </div>
-            <div
-              className="portal-circle portal-circle--small"
-              onClick={() => navigate('/audio')}
-            >
+            <div className="portal-circle portal-circle--small" onClick={() => navigate('/audio')}>
               <div className="portal-icon" style={{ fontSize: '1.6rem' }}>🎵</div>
               <div className="portal-label" style={{ fontSize: '0.68rem' }}>Audio</div>
               <div className="portal-desc" style={{ fontSize: '0.62rem' }}>His voice, his music</div>
@@ -159,7 +155,7 @@ export default function ContentsPage() {
     )
   }
 
-  // ── DESKTOP LAYOUT (unchanged) ────────────────────────────────────────────
+  // ── DESKTOP (unchanged) ───────────────────────────────────────────────────
   const portals = [
     { route: '/chapters', label: 'Life Chapters',    icon: '📖', description: 'The story of Gary'   },
     { route: '/gallery',  label: 'Gallery',          icon: '🖼',  description: 'Moments in time'     },

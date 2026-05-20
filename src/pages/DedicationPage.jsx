@@ -19,112 +19,120 @@ export default function DedicationPage() {
       ? dedication
       : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  // ── MOBILE ───────────────────────────────────────────────────────────────
+  // ── MOBILE — clean white card, no leather background ─────────────────────
   if (isMobile) {
     return (
       <div style={{
         width: '100%',
         minHeight: '100vh',
-        backgroundImage: "url('/leather_border.png')",
-        backgroundSize: '100% 100%',
-        backgroundRepeat: 'no-repeat',
+        background: '#f5f0e8',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
+        padding: '2rem 1.5rem',
         boxSizing: 'border-box',
-        // Wide side padding pulls content inside the leather border
-        padding: '2.5rem 3.5rem 3rem 3.5rem',
-        gap: '1rem',
-        overflowY: 'auto',
       }}>
 
-        {/* PHOTO */}
+        {/* WHITE CARD with gold digital border */}
         <div style={{
+          background: '#ffffff',
+          border: '3px solid #c9a84c',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(201,168,76,0.2)',
+          padding: '2rem 1.75rem',
           width: '100%',
-          maxWidth: '200px',
-          aspectRatio: '1 / 1',
-          padding: '8px',
-          background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
-          borderRadius: '6px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+          maxWidth: '340px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1.25rem',
           boxSizing: 'border-box',
-          flexShrink: 0,
         }}>
-          <div style={{
-            width: '100%',
-            height: '100%',
-            padding: '6px',
-            background: '#f5ead6',
-            borderRadius: '4px',
-            boxSizing: 'border-box',
-          }}>
-            <img
-              src="/Magicat.jpg"
-              alt="Making Life Magic"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                borderRadius: '2px',
-              }}
-            />
-          </div>
-        </div>
 
-        {/* DEDICATION TEXT */}
-        <div style={{ textAlign: 'center', width: '100%' }}>
+          {/* PHOTO */}
+          <div style={{
+            width: '180px',
+            height: '180px',
+            padding: '6px',
+            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
+            borderRadius: '6px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+            boxSizing: 'border-box',
+            flexShrink: 0,
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              padding: '5px',
+              background: '#f5ead6',
+              borderRadius: '3px',
+              boxSizing: 'border-box',
+            }}>
+              <img
+                src="/Magicat.jpg"
+                alt="Making Life Magic"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  borderRadius: '2px',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* DIVIDER */}
           <div style={{
             fontFamily: 'Cinzel, serif',
             fontSize: '0.6rem',
-            color: '#8b6914',
-            letterSpacing: '0.3em',
-            marginBottom: '0.6rem',
+            color: '#c9a84c',
+            letterSpacing: '0.4em',
           }}>
             ✦ ✦ ✦
           </div>
+
+          {/* DEDICATION TEXT — black on white */}
           <div style={{
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: '1rem',
-            color: '#3a2010',
-            lineHeight: 1.75,
+            fontSize: '1.05rem',
+            color: '#1a1208',
+            lineHeight: 1.85,
             whiteSpace: 'pre-line',
+            textAlign: 'center',
+            width: '100%',
           }}>
             {displayText}
           </div>
+
+          {/* BUTTON */}
+          <button
+            onClick={() => navigate('/contents')}
+            style={{
+              background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
+              border: '1px solid rgba(180,180,180,0.8)',
+              borderRadius: '999px',
+              padding: '0.55rem 2rem',
+              fontFamily: 'Cinzel, serif',
+              fontSize: '0.68rem',
+              letterSpacing: '0.15em',
+              color: '#2a2a2a',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+          >
+            MAKING LIFE MAGIC
+          </button>
+
         </div>
-
-        {/* BUTTON */}
-        <button
-          onClick={() => navigate('/contents')}
-          style={{
-            background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
-            border: '1px solid rgba(180,180,180,0.8)',
-            borderRadius: '999px',
-            padding: '0.55rem 1.75rem',
-            fontFamily: 'Cinzel, serif',
-            fontSize: '0.68rem',
-            letterSpacing: '0.15em',
-            color: '#2a2a2a',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            marginTop: '0.25rem',
-            flexShrink: 0,
-          }}
-        >
-          MAKING LIFE MAGIC
-        </button>
-
       </div>
     )
   }
 
   // ── DESKTOP (unchanged) ───────────────────────────────────────────────────
-  const PAD = '5vw'
-
   return (
     <div style={{
       width: '100%',
@@ -136,7 +144,7 @@ export default function DedicationPage() {
       alignItems: 'center',
       justifyContent: 'center',
       boxSizing: 'border-box',
-      padding: PAD,
+      padding: '5vw',
     }}>
       <div style={{
         display: 'flex',
@@ -209,9 +217,7 @@ export default function DedicationPage() {
               letterSpacing: '0.3em',
               textAlign: 'left',
               marginBottom: '0.5rem',
-            }}>
-              ✦ ✦ ✦
-            </div>
+            }}>✦ ✦ ✦</div>
             <div style={{
               fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
               fontStyle: 'italic',

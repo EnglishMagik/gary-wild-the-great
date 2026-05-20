@@ -1,7 +1,12 @@
 import React from 'react'
 import Key from './Key'
 
+const isMobile = () =>
+  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768
+
 export default function BookCover({ onOpenComplete }) {
+  const bookHeight = isMobile() ? '68vh' : '90vh'
+
   return (
     <div style={{
       position: 'fixed',
@@ -14,7 +19,7 @@ export default function BookCover({ onOpenComplete }) {
     }}>
       <div style={{
         position: 'relative',
-        height: '90vh',
+        height: bookHeight,
         width: 'auto',
       }}>
         <img
