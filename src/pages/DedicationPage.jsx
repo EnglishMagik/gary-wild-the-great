@@ -142,7 +142,7 @@ export default function DedicationPage() {
         {/* BIOME LOGO — sits below the card on the brown background        */}
         {/* To resize: change BIOME_LOGO_SIZE at the top of this file       */}
         <img
-          src="/assets/BioMe.png"
+          src="/BioMe.png"
           alt="BioMe"
           style={{
             width: BIOME_LOGO_SIZE,
