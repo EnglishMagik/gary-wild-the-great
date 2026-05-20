@@ -56,8 +56,8 @@ export default function ContentsPage() {
           <div
             onClick={() => navigate('/')}
             style={{
-              width: '42px',
-              height: '42px',
+              width: '37px',
+              height: '39px',
               borderRadius: '50%',
               background: 'white',
               display: 'flex',

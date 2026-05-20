@@ -13,7 +13,7 @@ export default function BookCover({ onOpenComplete }) {
       inset: 0,
       display: 'flex',
       justifyContent: 'center',
-      paddingLeft: '1.8rem',
+      paddingLeft: '1.5rem',
       alignItems: 'center',
       backgroundColor: '#ffffff',
       overflow: 'hidden'
