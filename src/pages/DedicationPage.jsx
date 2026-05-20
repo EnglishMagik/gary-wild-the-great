@@ -31,17 +31,18 @@ export default function DedicationPage() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         boxSizing: 'border-box',
-        // Wider horizontal padding so content sits well inside the leather frame
-        padding: '3rem 2.5rem',
-        gap: '1.25rem',
+        // Wide side padding pulls content inside the leather border
+        padding: '2.5rem 3.5rem 3rem 3.5rem',
+        gap: '1rem',
+        overflowY: 'auto',
       }}>
 
-        {/* PHOTO — constrained so it sits inside the leather */}
+        {/* PHOTO */}
         <div style={{
           width: '100%',
-          maxWidth: '240px',
+          maxWidth: '200px',
           aspectRatio: '1 / 1',
           padding: '8px',
           background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
@@ -73,13 +74,13 @@ export default function DedicationPage() {
         </div>
 
         {/* DEDICATION TEXT */}
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', width: '100%' }}>
           <div style={{
             fontFamily: 'Cinzel, serif',
             fontSize: '0.6rem',
             color: '#8b6914',
             letterSpacing: '0.3em',
-            marginBottom: '0.75rem',
+            marginBottom: '0.6rem',
           }}>
             ✦ ✦ ✦
           </div>
@@ -87,9 +88,9 @@ export default function DedicationPage() {
             fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
             fontStyle: 'italic',
             fontWeight: 'bold',
-            fontSize: '1.1rem',
+            fontSize: '1rem',
             color: '#3a2010',
-            lineHeight: 1.8,
+            lineHeight: 1.75,
             whiteSpace: 'pre-line',
           }}>
             {displayText}
@@ -103,13 +104,15 @@ export default function DedicationPage() {
             background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
             border: '1px solid rgba(180,180,180,0.8)',
             borderRadius: '999px',
-            padding: '0.6rem 2rem',
+            padding: '0.55rem 1.75rem',
             fontFamily: 'Cinzel, serif',
-            fontSize: '0.7rem',
+            fontSize: '0.68rem',
             letterSpacing: '0.15em',
             color: '#2a2a2a',
             cursor: 'pointer',
             boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            marginTop: '0.25rem',
+            flexShrink: 0,
           }}
         >
           MAKING LIFE MAGIC

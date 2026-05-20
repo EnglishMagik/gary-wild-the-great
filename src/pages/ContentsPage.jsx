@@ -48,22 +48,22 @@ export default function ContentsPage() {
           minHeight: '100vh',
         }}>
 
-          {/* CROWN — slightly smaller, properly centred */}
+          {/* CROWN — doubled in size, centred */}
           <div
             onClick={() => navigate('/')}
             style={{
-              width: '46px',
-              height: '46px',
+              width: '80px',
+              height: '80px',
               borderRadius: '50%',
               background: 'white',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              boxShadow: '0 3px 12px rgba(0,0,0,0.4)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
               overflow: 'hidden',
               flexShrink: 0,
-              padding: '4px',
+              padding: '6px',
               boxSizing: 'border-box',
             }}
           >
@@ -74,7 +74,7 @@ export default function ContentsPage() {
             />
           </div>
 
-          {/* PASSWORD BOX — skinny, flat, placeholder text only */}
+          {/* PASSWORD BOX — skinny, white text, placeholder only */}
           <div style={{
             display: 'flex',
             gap: '0.4rem',
@@ -90,11 +90,11 @@ export default function ContentsPage() {
               placeholder="Enter to admin..."
               style={{
                 flex: 1,
-                padding: '0.3rem 0.75rem',
+                padding: '0.28rem 0.75rem',
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(201,168,76,0.45)',
                 borderRadius: '999px',
-                color: '#f5ead6',
+                color: '#ffffff',
                 fontFamily: 'Cinzel, serif',
                 fontSize: '0.72rem',
                 letterSpacing: '0.08em',
@@ -102,6 +102,7 @@ export default function ContentsPage() {
                 textAlign: 'center',
                 height: '30px',
                 boxSizing: 'border-box',
+                caretColor: '#ffffff',
               }}
             />
             <button
@@ -167,8 +168,6 @@ export default function ContentsPage() {
 
   return (
     <div className="portals-page">
-
-      {/* CROWN */}
       <div style={{
         position: 'absolute', top: '18%', left: '50%',
         transform: 'translateX(-50%)', zIndex: 10,
@@ -186,7 +185,6 @@ export default function ContentsPage() {
         <img src="/crown.png" alt="Book Cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
       </div>
 
-      {/* GEAR */}
       <div style={{
         position: 'absolute', bottom: '18%', left: '50%',
         transform: 'translateX(-50%)', zIndex: 10,
@@ -203,7 +201,6 @@ export default function ContentsPage() {
         ⚙
       </div>
 
-      {/* 3 PORTAL CIRCLES */}
       <div className="portals-row" style={{ marginTop: '5rem' }}>
         {portals.map((p) => (
           <div key={p.route} className="portal-circle" onClick={() => navigate(p.route)}>
@@ -213,7 +210,6 @@ export default function ContentsPage() {
           </div>
         ))}
       </div>
-
     </div>
   )
 }

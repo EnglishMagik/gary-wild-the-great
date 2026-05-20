@@ -14,7 +14,7 @@ export default function BookCover({ onOpenComplete }) {
     }}>
       <div style={{
         position: 'relative',
-        height: '98vh',
+        height: '90vh',
         width: 'auto',
       }}>
         <img
