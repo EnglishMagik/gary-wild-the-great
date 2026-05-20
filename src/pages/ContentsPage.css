@@ -10,7 +10,6 @@
   position: relative;
 }
 
-/* Overlay to stop leather overpowering everything */
 .portals-page::before {
   content: '';
   position: absolute;
@@ -87,34 +86,36 @@
   padding: 0 1rem;
 }
 
-/* ── MOBILE ─────────────────────────────────────────────── */
+/* ── MOBILE: large main circle ───────────────────────────── */
 @media (max-width: 767px) {
-  .portals-row {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 0.75rem;
-    margin-top: 0;
+  .portal-circle--large {
+    width: 58vw;
+    height: 58vw;
+    max-width: 240px;
+    max-height: 240px;
+    gap: 0.5rem;
   }
 
-  .portal-circle {
-    width: 52vw;
-    height: 52vw;
-    max-width: 220px;
-    max-height: 220px;
-    gap: 0.4rem;
+  .portal-circle--large .portal-icon {
+    font-size: 2.4rem;
   }
 
-  .portal-icon {
-    font-size: 2.2rem;
+  .portal-circle--large .portal-label {
+    font-size: 0.82rem;
+    padding: 0.25rem 0.9rem;
   }
 
-  .portal-label {
-    font-size: 0.78rem;
-    padding: 0.25rem 0.75rem;
+  .portal-circle--large .portal-desc {
+    font-size: 0.74rem;
   }
 
-  .portal-desc {
-    font-size: 0.72rem;
-    padding: 0 0.5rem;
+  /* small side-by-side circles */
+  .portal-circle--small {
+    width: 36vw;
+    height: 36vw;
+    max-width: 150px;
+    max-height: 150px;
+    gap: 0.3rem;
+    padding: 0.4rem;
   }
 }

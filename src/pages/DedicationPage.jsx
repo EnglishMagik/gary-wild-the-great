@@ -33,14 +33,16 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         boxSizing: 'border-box',
-        padding: '2rem 1.5rem',
-        gap: '1.5rem',
+        // Wider horizontal padding so content sits well inside the leather frame
+        padding: '3rem 2.5rem',
+        gap: '1.25rem',
       }}>
 
-        {/* PHOTO */}
+        {/* PHOTO — constrained so it sits inside the leather */}
         <div style={{
-          width: '180px',
-          height: '180px',
+          width: '100%',
+          maxWidth: '240px',
+          aspectRatio: '1 / 1',
           padding: '8px',
           background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
           borderRadius: '6px',
@@ -94,7 +96,7 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* BUTTON — always visible, never blocked */}
+        {/* BUTTON */}
         <button
           onClick={() => navigate('/contents')}
           style={{
@@ -108,7 +110,6 @@ export default function DedicationPage() {
             color: '#2a2a2a',
             cursor: 'pointer',
             boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            marginTop: '0.5rem',
           }}
         >
           MAKING LIFE MAGIC
@@ -134,7 +135,6 @@ export default function DedicationPage() {
       boxSizing: 'border-box',
       padding: PAD,
     }}>
-
       <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -146,8 +146,6 @@ export default function DedicationPage() {
         gap: '2rem',
         paddingLeft: '350px',
       }}>
-
-        {/* LEFT — IMAGE */}
         <div style={{
           flex: '0 0 265px',
           maxWidth: '265px',
@@ -190,7 +188,6 @@ export default function DedicationPage() {
           </div>
         </div>
 
-        {/* RIGHT — TEXT & BUTTON */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -201,7 +198,6 @@ export default function DedicationPage() {
           paddingTop: '40px',
           marginLeft: '10px',
         }}>
-
           <div style={{ paddingLeft: '70px' }}>
             <div style={{
               fontFamily: 'Cinzel, serif',
@@ -226,7 +222,6 @@ export default function DedicationPage() {
               {displayText}
             </div>
           </div>
-
           <div style={{ paddingLeft: '30px', marginTop: '0.5rem' }}>
             <button
               onClick={() => navigate('/contents')}
