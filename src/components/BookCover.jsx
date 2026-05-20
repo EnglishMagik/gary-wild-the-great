@@ -5,7 +5,7 @@ const isMobile = () =>
   /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768
 
 export default function BookCover({ onOpenComplete }) {
-  const bookHeight = isMobile() ? '52vh' : '90vh'
+  const bookHeight = isMobile() ? '50vh' : '90vh'
 
   return (
     <div style={{

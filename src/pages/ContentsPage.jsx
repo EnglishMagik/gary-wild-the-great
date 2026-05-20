@@ -42,8 +42,8 @@ export default function ContentsPage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          gap: '0.7rem',
-          paddingTop: '1rem',
+          gap: '1.4rem',
+          paddingTop: '2.5rem',
           paddingBottom: '1.5rem',
           paddingLeft: '1rem',
           paddingRight: '1rem',
@@ -66,14 +66,14 @@ export default function ContentsPage() {
               cursor: 'pointer',
               boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
               flexShrink: 0,
-              padding: '4px',
+              padding: '0px',
               boxSizing: 'border-box',
             }}
           >
             <img
               src="/crown.png"
               alt="Cover"
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
 
