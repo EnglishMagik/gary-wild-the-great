@@ -19,7 +19,7 @@ export default function DedicationPage() {
       ? dedication
       : `Live fully.\nCare deeply.\nShare generously.\nCreate boldly.\nBe Wild.`
 
-  // ── MOBILE — clean white card, no leather background ─────────────────────
+  // ── MOBILE — clean white card, shifted up ────────────────────────────────
   if (isMobile) {
     return (
       <div style={{
@@ -29,43 +29,46 @@ export default function DedicationPage() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem 1.5rem',
+        justifyContent: 'flex-start',
+        paddingTop: '1.5rem',
+        paddingBottom: '2rem',
+        paddingLeft: '1.5rem',
+        paddingRight: '1.5rem',
         boxSizing: 'border-box',
       }}>
 
-        {/* WHITE CARD with gold digital border */}
+        {/* WHITE CARD with gold border */}
         <div style={{
           background: '#ffffff',
           border: '3px solid #c9a84c',
           borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(201,168,76,0.2)',
-          padding: '2rem 1.75rem',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          padding: '1.75rem 1.5rem',
           width: '100%',
           maxWidth: '340px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '1.25rem',
+          gap: '1.1rem',
           boxSizing: 'border-box',
         }}>
 
-          {/* PHOTO */}
+          {/* PHOTO — dark grey border */}
           <div style={{
             width: '180px',
             height: '180px',
             padding: '6px',
-            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
+            background: 'linear-gradient(135deg, #555555, #888888, #555555)',
             borderRadius: '6px',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
             boxSizing: 'border-box',
             flexShrink: 0,
           }}>
             <div style={{
               width: '100%',
               height: '100%',
-              padding: '5px',
-              background: '#f5ead6',
+              padding: '4px',
+              background: '#e8e8e8',
               borderRadius: '3px',
               boxSizing: 'border-box',
             }}>

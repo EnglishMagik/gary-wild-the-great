@@ -41,30 +41,32 @@ export default function ContentsPage() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1rem',
-          padding: '1.5rem 1rem 2rem',
+          justifyContent: 'flex-start',
+          gap: '0.7rem',
+          paddingTop: '1rem',
+          paddingBottom: '1.5rem',
+          paddingLeft: '1rem',
+          paddingRight: '1rem',
           width: '100%',
           boxSizing: 'border-box',
           minHeight: '100vh',
         }}>
 
-          {/* CROWN — 130px, large and centred */}
+          {/* CROWN — small tight circle hugging the crown image */}
           <div
             onClick={() => navigate('/')}
             style={{
-              width: '130px',
-              height: '130px',
+              width: '72px',
+              height: '72px',
               borderRadius: '50%',
               background: 'white',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.45)',
-              overflow: 'hidden',
+              boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
               flexShrink: 0,
-              padding: '8px',
+              padding: '4px',
               boxSizing: 'border-box',
             }}
           >
