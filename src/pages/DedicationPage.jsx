@@ -37,202 +37,59 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'flex-start',
         paddingTop: '1.5rem',
-        paddingBottom: '2.5rem',
-        paddingLeft: '1.5rem',
-        paddingRight: '1.5rem',
+        paddingBottom: '2rem',
         boxSizing: 'border-box',
-        gap: '1.5rem',
+        position: 'relative',
+        overflowY: 'auto',
       }}>
-
-        {/* WHITE CARD with gold border */}
+        {/* Top-Right Logo Area for Mobile */}
         <div style={{
-          background: '#ffffff',
-          border: '3px solid #c9a84c',
-          borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          padding: '1.75rem 1.5rem',
           width: '100%',
-          maxWidth: '340px',
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '1.1rem',
-          boxSizing: 'border-box',
+          justifyContent: 'flex-end',
+          paddingRight: '1rem',
+          marginBottom: '1rem',
         }}>
-
-          {/* PHOTO — dark grey border */}
-          <div style={{
-            width: '180px',
-            height: '180px',
-            padding: '6px',
-            background: 'linear-gradient(135deg, #555555, #888888, #555555)',
-            borderRadius: '6px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            boxSizing: 'border-box',
-            flexShrink: 0,
-          }}>
-            <div style={{
-              width: '100%',
-              height: '100%',
-              padding: '4px',
-              background: '#e8e8e8',
-              borderRadius: '3px',
-              boxSizing: 'border-box',
-            }}>
-              <img
-                src="/Magicat.jpg"
-                alt="Making Life Magic"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  borderRadius: '2px',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* DIVIDER */}
-          <div style={{
-            fontFamily: 'Cinzel, serif',
-            fontSize: '0.6rem',
-            color: '#c9a84c',
-            letterSpacing: '0.4em',
-          }}>
-            ✦ ✦ ✦
-          </div>
-
-          {/* DEDICATION TEXT */}
-          <div style={{
-            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
-            fontStyle: 'italic',
-            fontWeight: 'bold',
-            fontSize: '1.05rem',
-            color: '#1a1208',
-            lineHeight: 1.85,
-            whiteSpace: 'pre-line',
-            textAlign: 'center',
-            width: '100%',
-          }}>
-            {displayText}
-          </div>
-
-          {/* BUTTON */}
-          <button
-            onClick={() => navigate('/contents')}
+          <img
+            src="/BioMeLogo.png"
+            alt="BioMe Logo"
             style={{
-              background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
-              border: '1px solid rgba(180,180,180,0.8)',
-              borderRadius: '999px',
-              padding: '0.55rem 2rem',
-              fontFamily: 'Cinzel, serif',
-              fontSize: '0.68rem',
-              letterSpacing: '0.15em',
-              color: '#2a2a2a',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              width: BIOME_LOGO_SIZE,
+              height: 'auto',
+              objectFit: 'contain',
             }}
-          >
-            MAKING LIFE MAGIC
-          </button>
-
+          />
         </div>
 
-        {/* BIOME LOGO — sits below the card on the brown background        */}
-        {/* To resize: change BIOME_LOGO_SIZE at the top of this file       */}
-        <img
-          src="/BioMe.png"
-          alt="BioMe"
-          style={{
-            width: BIOME_LOGO_SIZE,
-            height: 'auto',
-            opacity: 0.9,
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))',
-          }}
-        />
-
-      </div>
-    )
-  }
-
-  // ── DESKTOP (unchanged) ───────────────────────────────────────────────────
-  return (
-    <div style={{
-      width: '100%',
-      minHeight: '100vh',
-      backgroundImage: "url('/leather_border.png')",
-      backgroundSize: '100% 100%',
-      backgroundRepeat: 'no-repeat',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxSizing: 'border-box',
-      padding: '5vw 5vw 5vw 15vw',
-    }}>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        maxWidth: '700px',
-        margin: '0 auto',
-        gap: '2rem',
-      }}>
+        {/* Outer Frame Mockup (Vertical Card) */}
         <div style={{
-          flex: '0 0 265px',
-          maxWidth: '265px',
+          width: '90%',
+          maxWidth: '360px',
+          aspectRatio: '1 / 1.414',
+          background: '#f4ebd0',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.6), inset 0 0 40px rgba(0,0,0,0.08)',
+          borderRadius: '4px',
+          border: '1px solid #3a2010',
+          boxSizing: 'border-box',
+          padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          justifyContent: 'center',
-          paddingTop: '20px',
         }}>
+          {/* Inner Border */}
           <div style={{
             width: '100%',
-            maxWidth: '245px',
-            aspectRatio: '1 / 1',
-            padding: '8px',
-            background: 'linear-gradient(135deg, #8b6914, #c9a84c, #8b6914)',
-            borderRadius: '6px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+            height: '100%',
+            border: '1px dashed rgba(139, 105, 20, 0.4)',
             boxSizing: 'border-box',
+            padding: '1rem 0.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}>
-            <div style={{
-              width: '100%',
-              height: '100%',
-              padding: '6px',
-              background: '#f5ead6',
-              borderRadius: '4px',
-              boxSizing: 'border-box',
-            }}>
-              <img
-                src="/Magicat.jpg"
-                alt="Making Life Magic"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  borderRadius: '2px',
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.6rem',
-          paddingTop: '40px',
-          marginLeft: '20px',
-        }}>
-          <div style={{ paddingLeft: '0px' }}>
+            {/* Crown / Stars */}
             <div style={{
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
@@ -241,11 +98,13 @@ export default function DedicationPage() {
               textAlign: 'center',
               marginBottom: '0.5rem',
             }}>✦ ✦ ✦</div>
+
+            {/* Dedication Text Content */}
             <div style={{
               fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
               fontStyle: 'italic',
               fontWeight: 'bold',
-              fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
+              fontSize: 'clamp(0.75rem, 3.5vw, 1rem)',
               color: '#3a2010',
               textAlign: 'center',
               lineHeight: 1.8,
@@ -253,26 +112,114 @@ export default function DedicationPage() {
             }}>
               {displayText}
             </div>
+
+            {/* Bottom Button Area */}
+            <div style={{ marginTop: '1.5rem' }}>
+              <button
+                onClick={() => navigate('/contents')}
+                style={{
+                  background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
+                  border: '1px solid rgba(180,180,180,0.8)',
+                  borderRadius: '999px',
+                  padding: '0.4rem 1.8rem',
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: '0.6rem',
+                  letterSpacing: '0.15em',
+                  color: '#2a2a2a',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                }}
+              >
+                CONTENTS
+              </button>
+            </div>
           </div>
-          <div style={{ paddingLeft: '0px', marginTop: '0.5rem' }}>
-            <button
-              onClick={() => navigate('/contents')}
-              style={{
-                background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
-                border: '1px solid rgba(180,180,180,0.8)',
-                borderRadius: '999px',
-                padding: '0.4rem 1.8rem',
-                fontFamily: 'Cinzel, serif',
-                fontSize: '0.6rem',
-                letterSpacing: '0.15em',
-                color: '#2a2a2a',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}
-            >
-              MAKING LIFE MAGIC
-            </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── DESKTOP ───────────────────────────────────────────────────────────────
+  return (
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      backgroundImage: 'url("/book_pages.png")',
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundColor: '#1a1a1a',
+      display: 'flex',
+      boxSizing: 'border-box',
+      // 1. Outer padding left reduced from 15vw to 12vw
+      padding: '5vw 5vw 5vw 12vw',
+    }}>
+      {/* Left Blank Page Container */}
+      <div style={{ flex: 1 }} />
+
+      {/* Right Content Page Container */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        // 2. Padding top reduced from 40px to 0px
+        paddingTop: '0px',
+        boxSizing: 'border-box',
+      }}>
+        {/* Inner Content Block */}
+        <div style={{
+          // 3. Margin left reduced from 20px to 0px
+          marginLeft: '0px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}>
+          {/* Decorative Divider */}
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '0.6rem',
+            color: '#8b6914',
+            letterSpacing: '0.3em',
+            textAlign: 'center',
+            marginBottom: '0.5rem',
+          }}>✦ ✦ ✦</div>
+          
+          <div style={{
+            fontFamily: '"Bradley Hand ITC", "Bradley Hand", cursive',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
+            color: '#3a2010',
+            textAlign: 'center',
+            lineHeight: 1.8,
+            whiteSpace: 'pre-line',
+          }}>
+            {displayText}
           </div>
+        </div>
+        
+        <div style={{ paddingLeft: '0px', marginTop: '0.5rem' }}>
+          <button
+            onClick={() => navigate('/contents')}
+            style={{
+              background: 'linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 40%, #b0b0b0 60%, #d4d4d4 100%)',
+              border: '1px solid rgba(180,180,180,0.8)',
+              borderRadius: '999px',
+              padding: '0.4rem 1.8rem',
+              fontFamily: 'Cinzel, serif',
+              fontSize: '0.6rem',
+              letterSpacing: '0.15em',
+              color: '#2a2a2a',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+            }}
+          >
+            CONTENTS
+          </button>
         </div>
       </div>
     </div>
