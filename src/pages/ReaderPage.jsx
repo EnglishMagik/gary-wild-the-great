@@ -80,25 +80,34 @@ export default function ReaderPage() {
     )
   }
 
-  const safeIndex = Math.min(currentPageIndex, slots.length - 1)
+  const safeIndex    = Math.min(currentPageIndex, slots.length - 1)
   const pagesPerSpread = useMobilePortrait ? 1 : 2
-  const leftSlot = slots[safeIndex]
-  const rightSlot = !useMobilePortrait ? slots[safeIndex + 1] : null
-  const canGoNext = safeIndex + pagesPerSpread < slots.length
-  const canGoPrev = safeIndex > 0
-  const goNext = () => { if (canGoNext) setCurrentPage(safeIndex + pagesPerSpread) }
-  const goPrev = () => { if (canGoPrev) setCurrentPage(safeIndex - pagesPerSpread) }
+  const leftSlot     = slots[safeIndex]
+  const rightSlot    = !useMobilePortrait ? slots[safeIndex + 1] : null
+  const canGoNext    = safeIndex + pagesPerSpread < slots.length
+  const canGoPrev    = safeIndex > 0
+  const goNext       = () => { if (canGoNext) setCurrentPage(safeIndex + pagesPerSpread) }
+  const goPrev       = () => { if (canGoPrev) setCurrentPage(safeIndex - pagesPerSpread) }
+
+  // Human-readable page numbers (1-based)
+  const leftPageNum  = safeIndex + 1
+  const rightPageNum = safeIndex + 2
+  // What page number will PREV land on? safeIndex - pagesPerSpread + 1 (left of that spread)
+  const prevPageNum  = safeIndex - pagesPerSpread + 1
+  // What page number will NEXT land on?
+  const nextPageNum  = safeIndex + pagesPerSpread + 1
 
   const textFont = '"Bradley Hand ITC", "Bradley Hand", cursive'
 
-  // ── DESKTOP NAV BUTTON — shows page number + arrow ──
+  // ── DESKTOP NAV BUTTON ──
   const NavBtn = ({ onClick, disabled, label }) => (
     <button onClick={onClick} disabled={disabled} style={{
       background: disabled ? 'rgba(139,105,20,0.08)' : 'rgba(139,105,20,0.18)',
       border: '1px solid rgba(139,105,20,0.35)',
       borderRadius: '999px',
       cursor: disabled ? 'default' : 'pointer',
-      opacity: disabled ? 0.3 : 1,
+      // Never ghost — just hide when disabled so no confusing faded numbers
+      visibility: disabled ? 'hidden' : 'visible',
       padding: '2px 10px',
       transition: 'background 0.2s',
       flexShrink: 0,
@@ -114,7 +123,7 @@ export default function ReaderPage() {
     </button>
   )
 
-  // ── MOBILE TAP BUTTON (large, finger-friendly) ──
+  // ── MOBILE TAP BUTTON ──
   const MobileBtn = ({ onClick, disabled, label }) => (
     <button onClick={onClick} disabled={disabled} style={{
       background: disabled ? 'rgba(139,105,20,0.1)' : 'rgba(139,105,20,0.25)',
@@ -137,17 +146,17 @@ export default function ReaderPage() {
   )
 
   // ── DESKTOP SLOT RENDERER ──
-  // pageNum = the page number for THIS slot (left = safeIndex+1, right = safeIndex+2)
-  // prevPageNum = page number the PREV button would go back to
-  // nextPageNum = page number the NEXT button would go forward to
-  const renderSlot = (slot, pageNum, isLeft) => {
+  // Rules:
+  //   Left page:  PREV button top-left, nothing top-right
+  //   Right page: nothing top-left, NEXT button top-right
+  //   Exception:  if no right slot (odd last page), NEXT goes on left page top-right
+  const renderSlot = (slot, isLeft) => {
     if (!slot) return null
 
-    const prevLabel = `← ${safeIndex}`                          // page we're going back to
-    const nextLabel = `${safeIndex + pagesPerSpread + 1} →`     // page we're going forward to
-
-    // On left page: show NEXT if there is no right slot (odd last page)
-    const showNextOnLeft = isLeft && !rightSlot && canGoNext
+    const showPrev     = isLeft
+    const showNext     = !isLeft || (!rightSlot && canGoNext)
+    const prevLabel    = `← ${prevPageNum}`
+    const nextLabel    = `${nextPageNum} →`
 
     return (
       <div style={{
@@ -159,17 +168,25 @@ export default function ReaderPage() {
           position: 'absolute', top: 0, left: 0, right: 0,
           bottom: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
+
+          {/* ── NAV ROW — always at top, both sides ── */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            paddingTop: '0.6rem', marginBottom: '0.3rem', flexShrink: 0,
+          }}>
+            {showPrev
+              ? <NavBtn onClick={goPrev} disabled={!canGoPrev} label={prevLabel} />
+              : <div style={{ width: '1px' }} />}
+            {showNext
+              ? <NavBtn onClick={goNext} disabled={!canGoNext} label={nextLabel} />
+              : <div style={{ width: '1px' }} />}
+          </div>
+
+          {/* ── CHAPTER HEADER (first page of chapter only) ── */}
           {slot.isFirstOfChapter && (
-            <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0 }}>
-              {/* PREV always on left; NEXT on left only when no right slot */}
-              {isLeft && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', marginTop: '1rem' }}>
-                  <NavBtn onClick={goPrev} disabled={!canGoPrev} label={prevLabel} />
-                  {showNextOnLeft && <NavBtn onClick={goNext} disabled={!canGoNext} label={nextLabel} />}
-                </div>
-              )}
+            <div style={{ textAlign: 'center', paddingTop: '0.2rem', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.1rem' }}>
-                <img src="/crown.png" alt="Life Chapters" onClick={() => navigate('/chapters')}
+                <img src="/crown.png" alt="crown" onClick={() => navigate('/chapters')}
                   style={{ width: '75px', height: 'auto', cursor: 'pointer', opacity: 0.9, flexShrink: 0 }} />
                 <div style={{ fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '900', fontSize: 'clamp(0.4rem, 0.65vw, 0.55rem)', color: '#5a3a18', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
                   Chapter {slot.chapterNumber}
@@ -178,30 +195,30 @@ export default function ReaderPage() {
               <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.85rem, 1.5vw, 1.2rem)', color: '#2a1a08', lineHeight: 1.15 }}>
                 {slot.chapterTitle}
               </div>
-              <div style={{ width: '40%', height: '1px', background: 'rgba(90,58,24,0.4)', margin: '0.7rem auto 1rem auto' }} />
+              <div style={{ width: '40%', height: '1px', background: 'rgba(90,58,24,0.4)', margin: '0.7rem auto 0.8rem auto' }} />
             </div>
           )}
+
+          {/* ── CHAPTER TITLE HEADER (continuation pages) ── */}
           {!slot.isFirstOfChapter && (
-            <div style={{ display: 'flex', alignItems: 'center', paddingTop: '2rem', marginBottom: '0.5rem', flexShrink: 0 }}>
-              {isLeft && <NavBtn onClick={goPrev} disabled={!canGoPrev} label={prevLabel} />}
-              <div style={{ fontFamily: textFont, fontStyle: 'italic', fontSize: 'clamp(0.4rem, 0.6vw, 0.55rem)', color: '#5a3a18', flex: 1, textAlign: 'center', padding: '0 0.25rem' }}>
-                {slot.chapterTitle}
-              </div>
-              {/* NEXT on right page, OR on left page if no right slot */}
-              {(!isLeft || showNextOnLeft) && <NavBtn onClick={goNext} disabled={!canGoNext} label={nextLabel} />}
+            <div style={{ fontFamily: textFont, fontStyle: 'italic', fontSize: 'clamp(0.4rem, 0.6vw, 0.55rem)', color: '#5a3a18', textAlign: 'center', marginBottom: '0.5rem', flexShrink: 0 }}>
+              {slot.chapterTitle}
             </div>
           )}
+
+          {/* ── PAGE TEXT ── */}
           <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.72rem, 1.15vw, 0.98rem)', color: '#2a1a08', lineHeight: 1.78, overflow: 'hidden', flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
             {slot.paragraphs.map((para, i) => (
               <p key={i} style={{ marginBottom: '0.75rem', marginTop: 0 }}>{para}</p>
             ))}
           </div>
+
         </div>
       </div>
     )
   }
 
-  // ── DESKTOP RENDER (includes mobile landscape) ──
+  // ── DESKTOP RENDER ──
   const renderDesktop = () => (
     <div style={{
       width: '100%', height: '100vh',
@@ -217,37 +234,24 @@ export default function ReaderPage() {
           width: '100%', height: '100%', objectFit: 'fill',
           display: 'block', pointerEvents: 'none',
         }} />
-        {renderSlot(leftSlot, safeIndex + 1, true)}
-        {rightSlot && renderSlot(rightSlot, safeIndex + 2, false)}
+        {renderSlot(leftSlot, true)}
+        {rightSlot && renderSlot(rightSlot, false)}
       </div>
     </div>
   )
 
-  // ── MOBILE PORTRAIT RENDER — clean scrollable parchment ──
+  // ── MOBILE PORTRAIT RENDER ──
   const renderMobilePortrait = () => (
     <div style={{
-      width: '100%',
-      minHeight: '100vh',
-      background: '#f5ead6',
-      display: 'flex',
-      flexDirection: 'column',
-      boxSizing: 'border-box',
+      width: '100%', minHeight: '100vh', background: '#f5ead6',
+      display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
     }}>
-      {/* PARCHMENT PAGE */}
       <div style={{
-        flex: 1,
-        margin: '1rem',
-        background: '#fffcf0',
-        border: '1px solid rgba(139,105,20,0.3)',
-        borderRadius: '8px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        padding: '1.5rem 1.25rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
+        flex: 1, margin: '1rem', background: '#fffcf0',
+        border: '1px solid rgba(139,105,20,0.3)', borderRadius: '8px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '1.5rem 1.25rem',
+        display: 'flex', flexDirection: 'column', gap: '1rem',
       }}>
-
-        {/* CHAPTER HEADER */}
         {leftSlot?.isFirstOfChapter && (
           <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(139,105,20,0.3)', paddingBottom: '1rem' }}>
             <img src="/crown.png" alt="crown" onClick={() => navigate('/chapters')}
@@ -260,48 +264,23 @@ export default function ReaderPage() {
             </div>
           </div>
         )}
-
-        {/* NON-CHAPTER HEADER */}
         {!leftSlot?.isFirstOfChapter && (
           <div style={{ textAlign: 'center', fontFamily: textFont, fontStyle: 'italic', fontSize: '0.85rem', color: '#8b6914', borderBottom: '1px solid rgba(139,105,20,0.2)', paddingBottom: '0.5rem' }}>
             {leftSlot?.chapterTitle}
           </div>
         )}
-
-        {/* PAGE TEXT — large and readable */}
-        <div style={{
-          fontFamily: textFont,
-          fontStyle: 'italic',
-          fontWeight: 'bold',
-          fontSize: '1.1rem',
-          color: '#2a1a08',
-          lineHeight: 1.9,
-          flex: 1,
-        }}>
+        <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: '1.1rem', color: '#2a1a08', lineHeight: 1.9, flex: 1 }}>
           {leftSlot?.paragraphs.map((para, i) => (
             <p key={i} style={{ marginBottom: '1rem', marginTop: 0 }}>{para}</p>
           ))}
         </div>
-
-        {/* PAGE NUMBER */}
         <div style={{ textAlign: 'center', fontFamily: 'Cinzel, serif', fontSize: '0.9rem', color: '#8b6914', letterSpacing: '0.2em' }}>
           — {safeIndex + 1} —
         </div>
       </div>
-
-      {/* NAVIGATION — large tap targets at bottom */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.75rem 1rem 1.25rem',
-        background: '#f5ead6',
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem 1.25rem', background: '#f5ead6' }}>
         <MobileBtn onClick={goPrev} disabled={!canGoPrev} label="← Prev" />
-        <div
-          onClick={() => navigate('/chapters')}
-          style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', color: '#8b6914', letterSpacing: '0.15em', cursor: 'pointer', textAlign: 'center' }}
-        >
+        <div onClick={() => navigate('/chapters')} style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', color: '#8b6914', letterSpacing: '0.15em', cursor: 'pointer', textAlign: 'center' }}>
           CONTENTS
         </div>
         <MobileBtn onClick={goNext} disabled={!canGoNext} label="Next →" />
