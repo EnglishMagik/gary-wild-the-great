@@ -23,6 +23,10 @@ export default function StudioPage() {
   const recognitionRef    = useRef(null);
   const committedTextRef  = useRef('');
   const lastFinalRef      = useRef('');
+  // ── THIS IS THE KEY FIX ──
+  // A ref that mirrors isRecording so onend can read the LIVE value.
+  // State is stale inside callbacks — refs are not.
+  const isRecordingRef    = useRef(false);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -35,24 +39,13 @@ export default function StudioPage() {
     recognition.continuous = true;
     recognition.lang       = 'en-US';
 
-    // ─────────────────────────────────────────────────────────────────────
-    // THE ROOT CAUSE (confirmed across all screenshots):
-    //
-    // Android Chrome fires onresult on EVERY SINGLE WORD as an interim
-    // result, each time sending the growing sentence from the beginning.
-    // Showing interim results on mobile = showing every version of the
-    // sentence stacked together.
-    //
-    // THE FIX:
-    // On mobile: interimResults = false. We only receive confirmed final
-    // text. Nothing is shown until the browser is sure of the words.
-    // On desktop: interimResults = true works fine — keep the live preview.
-    // ─────────────────────────────────────────────────────────────────────
+    // On mobile: interimResults causes the duplicate-sentence bug.
+    // On desktop: interimResults = true gives the live preview.
     recognition.interimResults = !mobile;
 
     recognition.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (!event.results[i].isFinal) continue; // skip interim on desktop too if any slip through
+        if (!event.results[i].isFinal) continue;
 
         const clean = event.results[i][0].transcript.trim().replace(/\s+/g, ' ');
         if (!clean) continue;
@@ -75,14 +68,29 @@ export default function StudioPage() {
     };
 
     recognition.onerror = (e) => {
-      if (e.error !== 'no-speech') {
-        setStatus(`⚠️ Mic error: ${e.error}`);
-        setIsRecording(false);
-      }
+      // 'no-speech' fires on silence — this is normal, not an error.
+      // Do NOT stop recording for this.
+      if (e.error === 'no-speech') return;
+      if (e.error === 'aborted') return;
+      setStatus(`⚠️ Mic error: ${e.error}`);
+      isRecordingRef.current = false;
+      setIsRecording(false);
     };
 
+    // ── THE AUTO-RESTART FIX ──
+    // Android Chrome kills the session after 2 seconds of silence.
+    // If isRecordingRef is still true, the USER hasn't stopped —
+    // the browser just timed out. Restart immediately.
     recognition.onend = () => {
-      setIsRecording(false);
+      if (isRecordingRef.current) {
+        try {
+          recognition.start();
+        } catch (_) {
+          // Already restarting — ignore
+        }
+      } else {
+        setIsRecording(false);
+      }
     };
 
     recognitionRef.current = recognition;
@@ -92,20 +100,23 @@ export default function StudioPage() {
   const startRecording = () => {
     committedTextRef.current = text.trim();
     lastFinalRef.current     = '';
+    isRecordingRef.current   = true;
 
     try {
       recognitionRef.current?.start();
       setIsRecording(true);
-      setStatus(mobile ? '🎤 Listening… speak, then pause for results' : '🎤 Listening…');
+      setStatus(mobile ? '🎤 Listening… text appears after each pause' : '🎤 Listening…');
     } catch (e) {
+      isRecordingRef.current = false;
       setStatus('⚠️ Could not start mic. Tap again.');
     }
   };
 
   // ── Stop ─────────────────────────────────────────────────────────────────
   const stopRecording = () => {
-    try { recognitionRef.current?.stop(); } catch (_) {}
+    isRecordingRef.current = false; // Must set BEFORE calling .stop()
     setIsRecording(false);
+    try { recognitionRef.current?.stop(); } catch (_) {}
     setStatus('✅ Recording stopped.');
   };
 
@@ -223,7 +234,7 @@ export default function StudioPage() {
       {/* TEXT AREA */}
       <div style={{
         flex: 1,
-        minHeight: '200px',
+        minHeight: '300px',
         border: '1px solid rgba(201,168,76,0.4)',
         background: '#1a1208',
         borderRadius: '6px',
@@ -244,7 +255,7 @@ export default function StudioPage() {
           style={{
             width: '100%',
             height: '100%',
-            minHeight: '200px',
+            minHeight: '300px',
             background: 'transparent',
             color: '#f5ead6',
             border: 'none',
