@@ -57,8 +57,6 @@ export default function ReaderPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Mobile landscape uses desktop-style two-page spread
-  // Mobile portrait uses single scrollable page
   const useMobilePortrait = isMobile && !isLandscape
   const charsPerPage = useMobilePortrait ? CHARS_PER_PAGE_MOBILE : CHARS_PER_PAGE
   const slots = buildPageSlots(chapters, charsPerPage)
@@ -93,7 +91,7 @@ export default function ReaderPage() {
 
   const textFont = '"Bradley Hand ITC", "Bradley Hand", cursive'
 
-  // ── DESKTOP NAV BUTTON (small, hover-based) ──
+  // ── DESKTOP NAV BUTTON — shows page number + arrow ──
   const NavBtn = ({ onClick, disabled, label }) => (
     <button onClick={onClick} disabled={disabled} style={{
       background: disabled ? 'rgba(139,105,20,0.08)' : 'rgba(139,105,20,0.18)',
@@ -139,8 +137,18 @@ export default function ReaderPage() {
   )
 
   // ── DESKTOP SLOT RENDERER ──
+  // pageNum = the page number for THIS slot (left = safeIndex+1, right = safeIndex+2)
+  // prevPageNum = page number the PREV button would go back to
+  // nextPageNum = page number the NEXT button would go forward to
   const renderSlot = (slot, pageNum, isLeft) => {
     if (!slot) return null
+
+    const prevLabel = `← ${safeIndex}`                          // page we're going back to
+    const nextLabel = `${safeIndex + pagesPerSpread + 1} →`     // page we're going forward to
+
+    // On left page: show NEXT if there is no right slot (odd last page)
+    const showNextOnLeft = isLeft && !rightSlot && canGoNext
+
     return (
       <div style={{
         position: 'absolute',
@@ -148,23 +156,16 @@ export default function ReaderPage() {
         width: '33%', bottom: '4%', zIndex: 3,
       }}>
         <div style={{
-          position: 'absolute', bottom: '0.5rem',
-          left: isLeft ? 0 : 'auto', right: isLeft ? 'auto' : 0,
-          fontFamily: 'Cinzel, serif', fontStyle: 'italic',
-          fontSize: 'clamp(1.1rem, 1.6vw, 1.4rem)', color: '#5a3a18',
-          letterSpacing: '0.2em', fontWeight: 'bold', lineHeight: 1, zIndex: 4,
-        }}>
-          {pageNum}
-        </div>
-        <div style={{
           position: 'absolute', top: 0, left: 0, right: 0,
-          bottom: '3rem', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          bottom: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
           {slot.isFirstOfChapter && (
             <div style={{ textAlign: 'center', paddingTop: '0.8rem', flexShrink: 0 }}>
+              {/* PREV always on left; NEXT on left only when no right slot */}
               {isLeft && (
-                <div style={{ textAlign: 'left', marginBottom: '0.3rem', marginTop: '1rem' }}>
-                  <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', marginTop: '1rem' }}>
+                  <NavBtn onClick={goPrev} disabled={!canGoPrev} label={prevLabel} />
+                  {showNextOnLeft && <NavBtn onClick={goNext} disabled={!canGoNext} label={nextLabel} />}
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.1rem' }}>
@@ -182,11 +183,12 @@ export default function ReaderPage() {
           )}
           {!slot.isFirstOfChapter && (
             <div style={{ display: 'flex', alignItems: 'center', paddingTop: '2rem', marginBottom: '0.5rem', flexShrink: 0 }}>
-              {isLeft && <NavBtn onClick={goPrev} disabled={!canGoPrev} label="Previous" />}
+              {isLeft && <NavBtn onClick={goPrev} disabled={!canGoPrev} label={prevLabel} />}
               <div style={{ fontFamily: textFont, fontStyle: 'italic', fontSize: 'clamp(0.4rem, 0.6vw, 0.55rem)', color: '#5a3a18', flex: 1, textAlign: 'center', padding: '0 0.25rem' }}>
                 {slot.chapterTitle}
               </div>
-              {!isLeft && <NavBtn onClick={goNext} disabled={!canGoNext} label="Next" />}
+              {/* NEXT on right page, OR on left page if no right slot */}
+              {(!isLeft || showNextOnLeft) && <NavBtn onClick={goNext} disabled={!canGoNext} label={nextLabel} />}
             </div>
           )}
           <div style={{ fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold', fontSize: 'clamp(0.72rem, 1.15vw, 0.98rem)', color: '#2a1a08', lineHeight: 1.78, overflow: 'hidden', flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
