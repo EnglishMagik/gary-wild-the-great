@@ -168,7 +168,7 @@ export default function DedicationPage() {
       alignItems: 'center',
       justifyContent: 'center',
       boxSizing: 'border-box',
-      padding: '5vw 5vw 5vw 12vw',
+      padding: '5vw 5vw 5vw 8vw',
     }}>
       <div style={{
         display: 'flex',
@@ -176,9 +176,9 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        maxWidth: '700px',
+        maxWidth: '500px',
         margin: '0 auto',
-        gap: '2rem',
+        gap: '1rem',
       }}>
         <div style={{
           flex: '0 0 265px',
