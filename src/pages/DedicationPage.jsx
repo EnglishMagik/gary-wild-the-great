@@ -168,7 +168,7 @@ export default function DedicationPage() {
       alignItems: 'center',
       justifyContent: 'center',
       boxSizing: 'border-box',
-      padding: '5vw',
+      padding: '5vw 5vw 5vw 15vw',
     }}>
       <div style={{
         display: 'flex',
