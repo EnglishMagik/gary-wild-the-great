@@ -150,18 +150,6 @@ export default function ReaderPage() {
           ))}
         </div>
 
-        {/* PAGE NUMBER */}
-        <div style={{
-          textAlign: isLeft ? 'left' : 'right',
-          fontFamily: 'Cinzel, serif',
-          fontSize: '0.75rem',
-          color: '#8b6914',
-          letterSpacing: '0.2em',
-          marginTop: '1rem',
-          flexShrink: 0,
-        }}>
-          — {pageNum} —
-        </div>
       </div>
     )
   }
@@ -219,9 +207,9 @@ export default function ReaderPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2vh 4vw',
+      padding: '1vh 4vw',
       boxSizing: 'border-box',
-      gap: '1.5vh',
+      gap: '0.5vh',
     }}>
       {/* TWO PAGE SPREAD */}
       <div style={{

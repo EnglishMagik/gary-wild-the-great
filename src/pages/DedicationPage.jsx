@@ -226,11 +226,11 @@ export default function DedicationPage() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'center',
           gap: '0.6rem',
           paddingTop: '40px',
-          marginLeft: '10px',
+          marginLeft: '60px',
         }}>
           <div style={{ paddingLeft: '0px' }}>
             <div style={{
@@ -238,7 +238,7 @@ export default function DedicationPage() {
               fontSize: '0.6rem',
               color: '#8b6914',
               letterSpacing: '0.3em',
-              textAlign: 'left',
+              textAlign: 'center',
               marginBottom: '0.5rem',
             }}>✦ ✦ ✦</div>
             <div style={{
@@ -247,7 +247,7 @@ export default function DedicationPage() {
               fontWeight: 'bold',
               fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
               color: '#3a2010',
-              textAlign: 'left',
+              textAlign: 'center',
               lineHeight: 1.8,
               whiteSpace: 'pre-line',
             }}>
