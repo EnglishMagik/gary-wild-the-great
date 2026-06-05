@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useBookStore } from '../store/bookStore';
 import { useNavigate } from 'react-router-dom';
 
-// Detect mobile once
 const isMobile = () =>
   /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
   window.innerWidth <= 768;
@@ -20,13 +19,12 @@ export default function StudioPage() {
   const processVoiceInput = useBookStore((s) => s.processVoiceInput);
   const deleteChapter     = useBookStore((s) => s.deleteChapter);
 
-  const recognitionRef    = useRef(null);
-  const committedTextRef  = useRef('');
-  const lastFinalRef      = useRef('');
-  // ── THIS IS THE KEY FIX ──
-  // A ref that mirrors isRecording so onend can read the LIVE value.
-  // State is stale inside callbacks — refs are not.
-  const isRecordingRef    = useRef(false);
+  const recognitionRef   = useRef(null);
+  const committedTextRef = useRef('');
+  const lastFinalRef     = useRef('');
+  // Mirrors isRecording so onend can read the LIVE value (state is stale in callbacks)
+  const isRecordingRef   = useRef(false);
+  const textareaRef      = useRef(null);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -36,58 +34,59 @@ export default function StudioPage() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.lang       = 'en-US';
-
-    // On mobile: interimResults causes the duplicate-sentence bug.
-    // On desktop: interimResults = true gives the live preview.
+    recognition.continuous     = true;
+    recognition.lang           = 'en-US';
+    // Mobile: false — Android sends the growing sentence on every word, causing duplicates
+    // Desktop: true — gives live word-by-word preview
     recognition.interimResults = !mobile;
 
     recognition.onresult = (event) => {
+      // Process final results — both platforms
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (!event.results[i].isFinal) continue;
 
         const clean = event.results[i][0].transcript.trim().replace(/\s+/g, ' ');
         if (!clean) continue;
-
-        // Exact-match duplicate guard
-        if (clean === lastFinalRef.current) continue;
+        if (clean === lastFinalRef.current) continue; // duplicate guard
         lastFinalRef.current = clean;
 
         committedTextRef.current = (committedTextRef.current + ' ' + clean).trim();
-        setText(committedTextRef.current);
       }
 
-      // Desktop only: show live interim preview
+      // Desktop: also show live interim preview on top of committed text
+      let display = committedTextRef.current;
       if (!mobile) {
-        const lastResult = event.results[event.results.length - 1];
-        if (!lastResult.isFinal) {
-          setText(committedTextRef.current + ' ' + lastResult[0].transcript.trim());
+        const last = event.results[event.results.length - 1];
+        if (!last.isFinal) {
+          display = (committedTextRef.current + ' ' + last[0].transcript.trim()).trim();
         }
       }
+
+      setText(display);
+
+      // Auto-scroll textarea to bottom so latest text is always visible
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+        }
+      }, 0);
     };
 
     recognition.onerror = (e) => {
-      // 'no-speech' fires on silence — this is normal, not an error.
-      // Do NOT stop recording for this.
-      if (e.error === 'no-speech') return;
-      if (e.error === 'aborted') return;
+      // no-speech and aborted are normal — do not stop recording for these
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
       setStatus(`⚠️ Mic error: ${e.error}`);
       isRecordingRef.current = false;
       setIsRecording(false);
     };
 
-    // ── THE AUTO-RESTART FIX ──
-    // Android Chrome kills the session after 2 seconds of silence.
-    // If isRecordingRef is still true, the USER hasn't stopped —
-    // the browser just timed out. Restart immediately.
+    // KEY FIX: Android kills the session after ~2s silence.
+    // If isRecordingRef is still true, the USER hasn't stopped — restart immediately.
     recognition.onend = () => {
       if (isRecordingRef.current) {
-        try {
-          recognition.start();
-        } catch (_) {
-          // Already restarting — ignore
-        }
+        setTimeout(() => {
+          try { recognition.start(); } catch (_) {}
+        }, 100); // small delay prevents "already started" error
       } else {
         setIsRecording(false);
       }
@@ -96,7 +95,7 @@ export default function StudioPage() {
     recognitionRef.current = recognition;
   }, [mobile]);
 
-  // ── Start ────────────────────────────────────────────────────────────────
+  // ── Start ──────────────────────────────────────────────────────────────
   const startRecording = () => {
     committedTextRef.current = text.trim();
     lastFinalRef.current     = '';
@@ -112,24 +111,33 @@ export default function StudioPage() {
     }
   };
 
-  // ── Stop ─────────────────────────────────────────────────────────────────
+  // ── Stop ───────────────────────────────────────────────────────────────
   const stopRecording = () => {
-    isRecordingRef.current = false; // Must set BEFORE calling .stop()
+    // MUST set ref to false BEFORE calling .stop() — otherwise onend restarts
+    isRecordingRef.current = false;
     setIsRecording(false);
     try { recognitionRef.current?.stop(); } catch (_) {}
     setStatus('✅ Recording stopped.');
   };
 
-  // ── Save ─────────────────────────────────────────────────────────────────
+  // ── Save ───────────────────────────────────────────────────────────────
   const handleSave = () => {
     const finalText = committedTextRef.current.trim() || text.trim();
     if (!finalText) return setStatus('⚠️ Nothing to save yet.');
 
-    processVoiceInput(
-      finalText,
-      newTitle.trim() ? null : (selectedId || null),
-      newTitle.trim() || null
-    );
+    const hasNewTitle    = newTitle.trim().length > 0;
+    const hasChapterId   = selectedId.length > 0;
+
+    if (hasNewTitle) {
+      // Create a brand new chapter with this title
+      processVoiceInput(finalText, null, newTitle.trim());
+    } else if (hasChapterId) {
+      // Add to the selected existing chapter
+      processVoiceInput(finalText, selectedId, null);
+    } else {
+      // No selection — add to last chapter, or create one called "My Story"
+      processVoiceInput(finalText, null, null);
+    }
 
     committedTextRef.current = '';
     lastFinalRef.current     = '';
@@ -139,7 +147,7 @@ export default function StudioPage() {
     setStatus('✅ Saved! Tap CONTENTS to see it.');
   };
 
-  // ── Delete chapter ────────────────────────────────────────────────────────
+  // ── Delete chapter ─────────────────────────────────────────────────────
   const handleDelete = () => {
     if (!selectedId) return setStatus('⚠️ Select a chapter to delete.');
     if (window.confirm('Permanently delete this chapter and all its pages?')) {
@@ -149,7 +157,7 @@ export default function StudioPage() {
     }
   };
 
-  // ── UI ────────────────────────────────────────────────────────────────────
+  // ── UI ─────────────────────────────────────────────────────────────────
   return (
     <main style={{
       padding: '10px',
@@ -238,9 +246,9 @@ export default function StudioPage() {
         border: '1px solid rgba(201,168,76,0.4)',
         background: '#1a1208',
         borderRadius: '6px',
-        overflow: 'hidden',
       }}>
         <textarea
+          ref={textareaRef}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
@@ -266,6 +274,7 @@ export default function StudioPage() {
             fontFamily: 'Crimson Text, Georgia, serif',
             lineHeight: '1.7',
             boxSizing: 'border-box',
+            overflowY: 'auto',
           }}
         />
       </div>
