@@ -89,13 +89,42 @@ export default function ReaderPage() {
   const goNext         = () => { if (canGoNext) setCurrentPage(safeIndex + pagesPerSpread) }
   const goPrev         = () => { if (canGoPrev) setCurrentPage(safeIndex - pagesPerSpread) }
 
-  const prevLabel = `← ${Math.max(1, safeIndex - pagesPerSpread + 1)}`
-  const nextLabel = `${safeIndex + pagesPerSpread + 1} →`
+  // Page numbers — 1-based
+  const leftPageNum  = safeIndex + 1
+  const rightPageNum = safeIndex + 2
 
   const textFont = '"Bradley Hand ITC", "Bradley Hand", cursive'
 
-  // ── SHARED PAGE CARD ──
-  const PageCard = ({ slot, pageNum, isLeft }) => {
+  // ── PAGE NUMBER BUTTON — inside card at bottom ──
+  // Page 1: no arrow (nothing before it)
+  // All others: arrow showing direction
+  const PageNumBtn = ({ pageNum, onClick, disabled, isLeft }) => {
+    const label = pageNum === 1
+      ? `${pageNum}`
+      : isLeft ? `← ${pageNum}` : `${pageNum} →`
+    return (
+      <button onClick={onClick} disabled={disabled} style={{
+        background: disabled ? 'transparent' : 'rgba(139,105,20,0.12)',
+        border: '1px solid rgba(139,105,20,0.35)',
+        borderRadius: '999px',
+        cursor: disabled ? 'default' : 'pointer',
+        visibility: disabled ? 'hidden' : 'visible',
+        padding: '4px 14px',
+        transition: 'background 0.2s',
+      }}
+        onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(139,105,20,0.28)' }}
+        onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(139,105,20,0.12)' }}
+      >
+        <span style={{
+          fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '700',
+          fontSize: '0.72rem', color: '#5a3a18', letterSpacing: '0.08em', whiteSpace: 'nowrap',
+        }}>{label}</span>
+      </button>
+    )
+  }
+
+  // ── PAGE CARD ──
+  const PageCard = ({ slot, pageNum, isLeft, onNav, canNav }) => {
     if (!slot) return null
     return (
       <div style={{
@@ -106,11 +135,10 @@ export default function ReaderPage() {
         boxShadow: isLeft
           ? '4px 0 12px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.1)'
           : '-4px 0 12px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.1)',
-        padding: '2rem 2.5rem',
+        padding: '2rem 2.5rem 1.25rem',
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
-        position: 'relative',
       }}>
         {/* CHAPTER HEADER */}
         {slot.isFirstOfChapter && (
@@ -136,44 +164,27 @@ export default function ReaderPage() {
 
         {/* PAGE TEXT */}
         <div style={{
-          fontFamily: textFont,
-          fontStyle: 'italic',
-          fontWeight: 'bold',
-          fontSize: '1.05rem',
-          color: '#2a1a08',
-          lineHeight: 1.85,
-          flex: 1,
-          overflow: 'hidden',
+          fontFamily: textFont, fontStyle: 'italic', fontWeight: 'bold',
+          fontSize: '1.05rem', color: '#2a1a08', lineHeight: 1.85,
+          flex: 1, overflow: 'hidden',
         }}>
           {slot.paragraphs.map((para, i) => (
             <p key={i} style={{ marginBottom: '0.9rem', marginTop: 0 }}>{para}</p>
           ))}
         </div>
 
+        {/* PAGE NUMBER BUTTON — bottom corner */}
+        <div style={{
+          display: 'flex',
+          justifyContent: isLeft ? 'flex-start' : 'flex-end',
+          marginTop: '0.75rem',
+          flexShrink: 0,
+        }}>
+          <PageNumBtn pageNum={pageNum} onClick={onNav} disabled={!canNav} isLeft={isLeft} />
+        </div>
       </div>
     )
   }
-
-  // ── SHARED NAV BTN ──
-  const NavBtn = ({ onClick, disabled, label }) => (
-    <button onClick={onClick} disabled={disabled} style={{
-      background: disabled ? 'transparent' : 'rgba(139,105,20,0.15)',
-      border: '1px solid rgba(139,105,20,0.4)',
-      borderRadius: '999px',
-      cursor: disabled ? 'default' : 'pointer',
-      visibility: disabled ? 'hidden' : 'visible',
-      padding: '6px 18px',
-      transition: 'background 0.2s',
-    }}
-      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(139,105,20,0.3)' }}
-      onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(139,105,20,0.15)' }}
-    >
-      <span style={{
-        fontFamily: 'Cinzel, serif', fontStyle: 'italic', fontWeight: '700',
-        fontSize: '0.75rem', color: '#5a3a18', letterSpacing: '0.1em', whiteSpace: 'nowrap',
-      }}>{label}</span>
-    </button>
-  )
 
   // ── MOBILE TAP BUTTON ──
   const MobileBtn = ({ onClick, disabled, label }) => (
@@ -197,81 +208,53 @@ export default function ReaderPage() {
     </button>
   )
 
-  // ── DESKTOP RENDER — clean two-column parchment spread ──
+  // ── DESKTOP RENDER ──
   const renderDesktop = () => (
     <div style={{
-      width: '100%',
-      height: '100vh',
-      background: '#e8d5b0',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '1vh 4vw',
-      boxSizing: 'border-box',
-      gap: '0.5vh',
+      width: '100%', height: '100vh', background: '#e8d5b0',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '1vh 4vw 0.5vh', boxSizing: 'border-box', gap: '0.4vh',
     }}>
       {/* TWO PAGE SPREAD */}
       <div style={{
-        display: 'flex',
-        gap: '0',
-        width: '100%',
-        maxWidth: '1100px',
-        height: 'calc(100vh - 10vh)',
+        display: 'flex', gap: '0', width: '100%', maxWidth: '1100px',
+        height: 'calc(100vh - 6vh)',
         filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.25))',
       }}>
-        {/* SPINE */}
-        <div style={{
-          width: '18px',
-          flexShrink: 0,
-          alignSelf: 'stretch',
-          background: 'linear-gradient(90deg, #5a3a18, #8b6914, #5a3a18)',
-          borderRadius: '2px 0 0 2px',
-        }} />
+        {/* LEFT SPINE */}
+        <div style={{ width: '18px', flexShrink: 0, alignSelf: 'stretch', background: 'linear-gradient(90deg, #5a3a18, #8b6914, #5a3a18)', borderRadius: '2px 0 0 2px' }} />
 
-        <PageCard slot={leftSlot}  pageNum={safeIndex + 1} isLeft={true} />
+        <PageCard
+          slot={leftSlot}
+          pageNum={leftPageNum}
+          isLeft={true}
+          onNav={goPrev}
+          canNav={canGoPrev}
+        />
 
         {/* CENTRE SPINE */}
-        <div style={{
-          width: '12px',
-          flexShrink: 0,
-          alignSelf: 'stretch',
-          background: 'linear-gradient(90deg, rgba(90,58,24,0.3), rgba(139,105,20,0.15), rgba(90,58,24,0.3))',
-        }} />
+        <div style={{ width: '12px', flexShrink: 0, alignSelf: 'stretch', background: 'linear-gradient(90deg, rgba(90,58,24,0.3), rgba(139,105,20,0.15), rgba(90,58,24,0.3))' }} />
 
         {rightSlot
-          ? <PageCard slot={rightSlot} pageNum={safeIndex + 2} isLeft={false} />
+          ? <PageCard slot={rightSlot} pageNum={rightPageNum} isLeft={false} onNav={goNext} canNav={canGoNext} />
           : <div style={{ flex: 1, background: '#fffcf0', borderRadius: '0 8px 8px 0', opacity: 0.4 }} />
         }
 
-        {/* RIGHT EDGE */}
-        <div style={{
-          width: '18px',
-          flexShrink: 0,
-          alignSelf: 'stretch',
-          background: 'linear-gradient(90deg, #5a3a18, #8b6914, #5a3a18)',
-          borderRadius: '0 2px 2px 0',
-        }} />
+        {/* RIGHT SPINE */}
+        <div style={{ width: '18px', flexShrink: 0, alignSelf: 'stretch', background: 'linear-gradient(90deg, #5a3a18, #8b6914, #5a3a18)', borderRadius: '0 2px 2px 0' }} />
       </div>
 
-      {/* NAV ROW — below the spread, centred */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-        maxWidth: '1100px',
-        padding: '0 36px',
-        boxSizing: 'border-box',
-      }}>
-        <NavBtn onClick={goPrev} disabled={!canGoPrev} label={prevLabel} />
-        <div
-          onClick={() => navigate('/chapters')}
-          style={{ fontFamily: 'Cinzel, serif', fontSize: '0.7rem', color: '#5a3a18', letterSpacing: '0.2em', cursor: 'pointer', opacity: 0.7 }}
-        >
-          CONTENTS
-        </div>
-        <NavBtn onClick={goNext} disabled={!canGoNext} label={nextLabel} />
+      {/* CONTENTS ONLY — centred below spread */}
+      <div
+        onClick={() => navigate('/chapters')}
+        style={{
+          fontFamily: 'Cinzel, serif', fontSize: '0.78rem', fontWeight: '700',
+          color: '#5a3a18', letterSpacing: '0.25em', cursor: 'pointer',
+          padding: '0.3rem 1rem',
+        }}
+      >
+        CONTENTS
       </div>
     </div>
   )
@@ -315,11 +298,11 @@ export default function ReaderPage() {
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem 1.25rem', background: '#f5ead6' }}>
-        <MobileBtn onClick={goPrev} disabled={!canGoPrev} label="← Prev" />
-        <div onClick={() => navigate('/chapters')} style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', color: '#8b6914', letterSpacing: '0.15em', cursor: 'pointer', textAlign: 'center' }}>
+        <MobileBtn onClick={goPrev} disabled={!canGoPrev} label={canGoPrev ? `← ${safeIndex}` : '← 1'} />
+        <div onClick={() => navigate('/chapters')} style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', fontWeight: '700', color: '#8b6914', letterSpacing: '0.15em', cursor: 'pointer', textAlign: 'center' }}>
           CONTENTS
         </div>
-        <MobileBtn onClick={goNext} disabled={!canGoNext} label="Next →" />
+        <MobileBtn onClick={goNext} disabled={!canGoNext} label={`${safeIndex + 2} →`} />
       </div>
     </div>
   )

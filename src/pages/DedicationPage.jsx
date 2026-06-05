@@ -230,7 +230,7 @@ export default function DedicationPage() {
           justifyContent: 'center',
           gap: '0.6rem',
           paddingTop: '40px',
-          marginLeft: '60px',
+          marginLeft: '20px',
         }}>
           <div style={{ paddingLeft: '0px' }}>
             <div style={{
