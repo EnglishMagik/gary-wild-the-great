@@ -86,7 +86,7 @@ export default function StudioPage() {
       if (isRecordingRef.current) {
         setTimeout(() => {
           try { recognition.start(); } catch (_) {}
-        }, 100); // small delay prevents "already started" error
+        }, mobile ? 100 : 300);
       } else {
         setIsRecording(false);
       }
