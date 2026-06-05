@@ -169,7 +169,7 @@ export default function DedicationPage() {
       justifyContent: 'center',
       boxSizing: 'border-box',
       padding: '5vw',
-      paddingLeft: '12%',
+      paddingLeft: '9%',
       paddingRight: '8%',
     }}>
       <div style={{
