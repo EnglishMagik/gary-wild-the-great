@@ -176,10 +176,9 @@ export default function DedicationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        maxWidth: '1200px',
+        maxWidth: '700px',
         margin: '0 auto',
         gap: '2rem',
-        paddingLeft: '350px',
       }}>
         <div style={{
           flex: '0 0 265px',
@@ -233,7 +232,7 @@ export default function DedicationPage() {
           paddingTop: '40px',
           marginLeft: '10px',
         }}>
-          <div style={{ paddingLeft: '70px' }}>
+          <div style={{ paddingLeft: '0px' }}>
             <div style={{
               fontFamily: 'Cinzel, serif',
               fontSize: '0.6rem',
@@ -255,7 +254,7 @@ export default function DedicationPage() {
               {displayText}
             </div>
           </div>
-          <div style={{ paddingLeft: '30px', marginTop: '0.5rem' }}>
+          <div style={{ paddingLeft: '0px', marginTop: '0.5rem' }}>
             <button
               onClick={() => navigate('/contents')}
               style={{
