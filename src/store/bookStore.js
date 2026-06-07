@@ -86,36 +86,34 @@ export const useBookStore = create(
         get().showToast("Page deleted.");
       },
 
+      // FIX: Every save creates its own new page in the target chapter.
+      // The old "append to last page if under 800 chars" logic was silently
+      // failing for existing chapters. Each recording is now its own clean page.
       addPage: (chapterId, text) => {
         set((s) => ({
           chapters: s.chapters.map((ch) => {
             if (ch.id !== chapterId) return ch;
-            const pages = [...ch.pages];
-            const lastPage = pages[pages.length - 1];
-            if (lastPage && lastPage.text.length < 800) {
-              const updatedPage = { ...lastPage, text: lastPage.text + "\n\n" + text };
-              return { ...ch, pages: [...pages.slice(0, -1), updatedPage] };
-            } else {
-              return {
-                ...ch,
-                pages: [...pages, { id: 'pg-' + Date.now(), text, media: [] }]
-              };
-            }
+            return {
+              ...ch,
+              pages: [
+                ...ch.pages,
+                { id: 'pg-' + Date.now(), text, media: [] }
+              ],
+            };
           }),
         }));
       },
 
-      // NEW: Added to handle mobile-friendly audio/video recordings
       addMediaPage: (chapterId, mediaUrl, type) => {
         set((s) => ({
           chapters: s.chapters.map((ch) => {
             if (ch.id !== chapterId) return ch;
             return {
               ...ch,
-              pages: [...ch.pages, { 
-                id: 'pg-' + Date.now(), 
-                text: `[${type.toUpperCase()} RECORDING]`, 
-                media: [{ id: Date.now(), url: mediaUrl, type }] 
+              pages: [...ch.pages, {
+                id: 'pg-' + Date.now(),
+                text: `[${type.toUpperCase()} RECORDING]`,
+                media: [{ id: Date.now(), url: mediaUrl, type }]
               }]
             };
           }),
