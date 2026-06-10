@@ -93,6 +93,18 @@ export default function StudioPage() {
     };
 
     recognitionRef.current = recognition;
+
+    // ── CLEANUP (Sally-approved) ───────────────────────────────────────────
+    // When the user navigates away, kill the recognition session completely.
+    // Without this, onend keeps firing and restarting, causing the ping loop.
+    return () => {
+      isRecordingRef.current = false;
+      if (recognitionRef.current) {
+        recognitionRef.current.onend   = null;
+        recognitionRef.current.onerror = null;
+        try { recognitionRef.current.stop(); } catch (_) {}
+      }
+    };
   }, [mobile]);
 
   // ── Start ──────────────────────────────────────────────────────────────
